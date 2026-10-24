@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Configurar Cuestionario - UniPutumayo{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto w-full">
+  
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-200">
+    <div>
+      <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 mb-1">
+        <span>UniPutumayo</span>
+        <span>/</span>
+        <a href="/admin-panel/" class="hover:underline">Cuestionarios</a>
+        <span>/</span>
+        <span class="text-uniblue font-semibold">Configurar</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Parametrización del Cuestionario</h1>
+      <p class="text-xs text-slate-500">Configura temporalidad, escala decimal y asignación N:M de reactivos (Sec 2.4).</p>
+    </div>
+    <a href="/admin-panel/" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition">
+      ← Volver al Panel
+    </a>
+  </div>
+
+    <form id="quizForm" onsubmit="handleSaveQuiz(event)" class="space-y-6">
+
+      <!-- 1. Datos Generales -->
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h2 class="text-xs font-bold text-uniblue uppercase tracking-wider">
+          1. Información General del Examen
+        </h2>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Título del Cuestionario *</label>
+          <input type="text" id="quizName" required placeholder="Ej. Simulacro Saber TyT 2026-II" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs md:text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descripción e Instrucciones</label>
+          <textarea id="quizDesc" rows="3" placeholder="Instrucciones para los estudiantes antes de comenzar el examen..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs"></textarea>
+        </div>
+      </div>
+
+      <!-- 2. Límites Temporales (Reglas R01, R04) -->
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h2 class="text-xs font-bold text-uniblue uppercase tracking-wider">
+          2. Temporalidad y Restricciones de Disponibilidad (R01, R04, R08)
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha y Hora de Apertura *</label>
+            <input type="datetime-local" id="openDate" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha y Hora de Cierre (R01 > Apertura) *</label>
+            <input type="datetime-local" id="closeDate" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tiempo Límite en Minutos (R04 > 0) *</label>
+            <input type="number" min="5" max="360" id="timeLimit" required value="60" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Intentos Permitidos (R04 > 0) *</label>
+            <input type="number" min="1" max="10" id="attempts" required value="2" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Calificaciones y Políticas (R02, R03) -->
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h2 class="text-xs font-bold text-uniblue uppercase tracking-wider">
+          3. Escala Decimal y Políticas de Revisión (R02, R03)
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Calificación Máxima (R02 > 0) *</label>
+            <input type="number" step="0.1" min="1" id="maxGrade" required value="5.00" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nota para Aprobar (R03 <= Máxima) *</label>
+            <input type="number" step="0.1" min="0" max="5" id="passGrade" required value="3.00" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Estado del Cuestionario *</label>
+            <select id="quizStatus" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-semibold">
+              <option value="disponible">Disponible (Habilitado ahora)</option>
+              <option value="programado">Programado</option>
+              <option value="borrador" selected>Borrador</option>
+              <option value="cerrado">Cerrado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 space-y-2 text-xs">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="shuffleQuestions" checked class="w-4 h-4 text-unigreen rounded">
+            <span>Barajar preguntas aleatoriamente en cada intento</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="shuffleAnswers" checked class="w-4 h-4 text-unigreen rounded">
+            <span>Barajar alternativas (A, B, C, D) de cada reactivo</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="allowReview" checked class="w-4 h-4 text-unigreen rounded">
+            <span>Permitir revisión de respuestas correctas y justificación formativa al finalizar</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 4. Selección N:M de Preguntas del Banco (R07) -->
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xs font-bold text-uniblue uppercase tracking-wider">
+              4. Asignación de Reactivos del Banco (Relación N:M - R07)
+            </h2>
+            <p class="text-xs text-slate-500">Selecciona las preguntas que conformarán este simulacro.</p>
+          </div>
+          <span class="text-xs font-bold bg-unigreen/20 text-unigreen-dark px-3 py-1 rounded-full font-mono" id="selectedCountBadge">
+            0 seleccionadas
+          </span>
+        </div>
+
+        <div id="questionsSelectionList" class="space-y-2 border border-slate-200 rounded-2xl p-4 bg-slate-50 text-xs max-h-72 overflow-y-auto">
+          <div class="text-center py-4 text-slate-400">Cargando reactivos disponibles del banco...</div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex justify-end gap-3 pt-2">
+        <a href="/admin-panel/" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700">
+          Descartar
+        </a>
+        <button type="submit" id="submitQuizBtn" class="px-6 py-2.5 rounded-xl bg-unigreen hover:bg-unigreen-dark text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+          <span>Guardar Cuestionario en MySQL</span> ✓
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  Auth.requireAuth('/');
+
+  let bankQuestions = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Configurar fechas por defecto (hoy a +30 días)
+    const now = new Date();
+    const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
+    document.getElementById('openDate').value = formatDateTimeLocal(now);
+    document.getElementById('closeDate').value = formatDateTimeLocal(future);
+
+    loadBankQuestions();
+  });
+
+  function formatDateTimeLocal(d) {
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  async function loadBankQuestions() {
+    const container = document.getElementById('questionsSelectionList');
+    try {
+      const res = await Auth.apiFetch('/api/banco/preguntas/');
+      bankQuestions = await res.json();
+
+      if (bankQuestions.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-slate-400">No hay preguntas registradas en el banco aún. Crea preguntas primero o impórtalas desde Excel.</div>`;
+        return;
+      }
+
+      container.innerHTML = bankQuestions.map((q, idx) => `
+        <label class="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:border-uniblue cursor-pointer transition">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" name="quiz_question" value="${q.id}" checked onchange="updateSelectedCount()" class="w-4 h-4 text-uniblue rounded">
+            <div>
+              <span class="font-bold text-uniblue text-[11px]">[${q.categoria_nombre}]</span>
+              <span class="text-slate-800 text-xs">${q.enunciado}</span>
+            </div>
+          </div>
+          <span class="font-mono text-slate-500 font-bold whitespace-nowrap ml-2">${parseFloat(q.puntaje).toFixed(2)} pts</span>
+        </label>
+      `).join('');
+
+      updateSelectedCount();
+
+    } catch (e) {
+      container.innerHTML = `<div class="text-red-500 text-center py-2">${e.message}</div>`;
+    }
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('input[name="quiz_question"]:checked');
+    document.getElementById('selectedCountBadge').innerText = `${checked.length} seleccionadas`;
+  }
+
+  async function handleSaveQuiz(e) {
+    e.preventDefault();
+
+    const nombre = document.getElementById('quizName').value.trim();
+    const descripcion = document.getElementById('quizDesc').value.trim();
+    const fecha_apertura = document.getElementById('openDate').value;
+    const fecha_cierre = document.getElementById('closeDate').value;
+    const tiempo_limite_minutos = parseInt(document.getElementById('timeLimit').value);
+    const intentos_permitidos = parseInt(document.getElementById('attempts').value);
+    const calificacion_maxima = parseFloat(document.getElementById('maxGrade').value);
+    const calificacion_aprobacion = parseFloat(document.getElementById('passGrade').value);
+    const estado = document.getElementById('quizStatus').value;
+
+    const mezclar_preguntas = document.getElementById('shuffleQuestions').checked;
+    const mezclar_respuestas = document.getElementById('shuffleAnswers').checked;
+    const permitir_revision = document.getElementById('allowReview').checked;
+
+    // Validación Regla R01
+    const dOpen = new Date(fecha_apertura);
+    const dClose = new Date(fecha_cierre);
+    if (dClose <= dOpen) {
+      alert('Regla R01 violada: La fecha de cierre debe ser posterior a la fecha de apertura.');
+      return;
+    }
+
+    // Validación Regla R03
+    if (calificacion_aprobacion > calificacion_maxima) {
+      alert('Regla R03 violada: La nota de aprobación no puede superar la nota máxima.');
+      return;
+    }
+
+    const checked = document.querySelectorAll('input[name="quiz_question"]:checked');
+    const preguntas_ids = Array.from(checked).map(cb => parseInt(cb.value));
+
+    if (preguntas_ids.length === 0) {
+      alert('Debes seleccionar al menos una pregunta para conformar el cuestionario.');
+      return;
+    }
+
+    const btn = document.getElementById('submitQuizBtn');
+    btn.disabled = true;
+    btn.innerText = 'Guardando en MySQL...';
+
+    try {
+      const res = await Auth.apiFetch('/api/cuestionarios/cuestionarios/', {
+        method: 'POST',
+        body: JSON.stringify({
+          nombre, descripcion, fecha_apertura, fecha_cierre,
+          tiempo_limite_minutos, intentos_permitidos, calificacion_maxima,
+          calificacion_aprobacion, mezclar_preguntas, mezclar_respuestas,
+          permitir_revision, estado, activo: true, preguntas_ids
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(JSON.stringify(data));
+
+      alert('¡Cuestionario parametrizado y guardado con éxito!');
+      window.location.href = '/admin-panel/';
+
+    } catch (err) {
+      alert('Error al guardar cuestionario: ' + err.message);
+      btn.disabled = false;
+      btn.innerText = 'Guardar Cuestionario en MySQL ✓';
+    }
+  }
+</script>
+{% endblock %}

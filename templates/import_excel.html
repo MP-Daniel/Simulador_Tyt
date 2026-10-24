@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Importación Masiva Excel - UniPutumayo{% endblock %}
+
+{% block extra_head %}
+<!-- SheetJS para lectura y escritura de Excel en navegador -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto w-full">
+  
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-200">
+    <div>
+      <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 mb-1">
+        <span>UniPutumayo</span>
+        <span>/</span>
+        <a href="/admin-panel/" class="hover:underline">Banco</a>
+        <span>/</span>
+        <span class="text-uniblue font-semibold">Importador Excel</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Módulo de Importación Masiva desde Excel</h1>
+      <p class="text-xs text-slate-500">Valida reactivos fila por fila antes de guardar en MySQL (Sec 2.3 y Regla R10).</p>
+    </div>
+    <a href="/admin-panel/preguntas/" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition">
+      ← Ir al Banco de Preguntas
+    </a>
+  </div>
+      <div class="flex gap-2">
+        <a href="/api/banco/descargar-plantilla/" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
+          <span>📥</span> <span>Descargar Plantilla Oficial (.xlsx)</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Zona de Carga Drag & Drop -->
+    <div class="bg-white rounded-3xl border-2 border-dashed border-uniblue/40 p-8 text-center space-y-4 hover:border-uniblue transition bg-blue-50/20" id="dropZone">
+      <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl mx-auto shadow-sm">
+        📊
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Selecciona o arrastra el archivo de reactivos</h2>
+        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+          Soporta formatos <span class="font-bold text-slate-700">.xlsx</span> y <span class="font-bold text-slate-700">.csv</span> basados en la plantilla oficial de Saber TyT.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap justify-center items-center gap-3 pt-2">
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event)">
+        <button onclick="document.getElementById('excelFileInput').click()" class="bg-uniblue hover:bg-uniblue-dark text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow transition">
+          Examinar Archivo en mi PC
+        </button>
+        <button onclick="loadSampleDemoData()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2.5 rounded-xl text-xs transition border border-amber-300">
+          ⚡ Cargar Datos Demo con Regla R10
+        </button>
+      </div>
+
+      <!-- Cuestionario de destino opcional -->
+      <div class="pt-4 border-t border-slate-200/60 max-w-md mx-auto flex items-center justify-center gap-2 text-xs">
+        <label class="text-slate-600 font-semibold whitespace-nowrap">Asociar al Cuestionario:</label>
+        <select id="targetQuiz" class="bg-white border border-slate-300 rounded-xl p-2 text-xs text-slate-700 font-medium">
+          <option value="none">Solo guardar en el Banco (sin asociar)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Panel de Diagnóstico y Auditoría (Regla R10) -->
+    <div id="auditPanel" class="space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-slate-900">Diagnóstico de la Importación</h2>
+        <span id="fileNameBadge" class="text-xs bg-slate-200 text-slate-700 font-mono px-3 py-1 rounded-xl">archivo.xlsx</span>
+      </div>
+
+      <!-- Tarjetas de Diagnóstico -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-[10px] uppercase font-bold text-slate-400">Total Filas Leídas</div>
+          <div class="text-2xl font-black text-slate-800 mt-1" id="statTotal">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-sm">
+          <div class="text-[10px] uppercase font-bold text-emerald-600">Filas Válidas</div>
+          <div class="text-2xl font-black text-emerald-600 mt-1" id="statValid">0</div>
+          <div class="text-[10px] text-emerald-700 font-medium">Listas para guardar</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-sm">
+          <div class="text-[10px] uppercase font-bold text-amber-600">Duplicadas</div>
+          <div class="text-2xl font-black text-amber-600 mt-1" id="statDuplicate">0</div>
+          <div class="text-[10px] text-amber-700 font-medium">Se omitirán</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-red-200 bg-red-50/30 shadow-sm">
+          <div class="text-[10px] uppercase font-bold text-red-600">Filas con Error</div>
+          <div class="text-2xl font-black text-red-600 mt-1" id="statError">0</div>
+          <div class="text-[10px] text-red-700 font-medium">Regla R10: reportadas</div>
+        </div>
+      </div>
+
+      <!-- Tabla Previsualización Fila por Fila -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">Previsualización y Auditoría Fila por Fila</h3>
+          <span class="text-[11px] text-slate-500">Muestra la fila exacta del error en Excel</span>
+        </div>
+
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-600 uppercase border-b border-slate-200 sticky top-0 z-10">
+              <tr>
+                <th class="py-2.5 px-3 w-16"># Fila</th>
+                <th class="py-2.5 px-3">Estado</th>
+                <th class="py-2.5 px-3">Categoría</th>
+                <th class="py-2.5 px-3">Tipo</th>
+                <th class="py-2.5 px-3 w-1/3">Enunciado</th>
+                <th class="py-2.5 px-3">Resp.</th>
+                <th class="py-2.5 px-3">Puntaje</th>
+                <th class="py-2.5 px-3">Diagnóstico / Motivo del Error</th>
+              </tr>
+            </thead>
+            <tbody id="previewTbody" class="divide-y divide-slate-100 font-mono">
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Barra de Acciones Final -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div class="text-xs text-slate-600">
+            Solo se guardarán en MySQL las preguntas marcadas como <span class="font-bold text-emerald-600">VÁLIDA</span> (Regla R10).
+          </div>
+          <div class="flex gap-2">
+            <button onclick="resetImport()" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-300 transition">
+              Limpiar
+            </button>
+            <button id="confirmImportBtn" onclick="confirmImport()" class="px-5 py-2 rounded-xl bg-unigreen hover:bg-unigreen-dark text-white font-bold text-xs shadow transition flex items-center gap-1.5">
+              <span>Confirmar e Importar al Banco</span> ✓
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  Auth.requireAuth('/');
+
+  let parsedRows = [];
+  let currentFile = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadQuizzesSelect();
+  });
+
+  async function loadQuizzesSelect() {
+    try {
+      const res = await Auth.apiFetch('/api/cuestionarios/cuestionarios/');
+      const quizzes = await res.json();
+      const sel = document.getElementById('targetQuiz');
+      sel.innerHTML = '<option value="none">Solo guardar en el Banco (sin asociar)</option>' +
+        quizzes.map(q => `<option value="${q.id}">${q.nombre} (${q.estado})</option>`).join('');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function handleFileSelect(e) {
+    if (e.target.files.length > 0) processFile(e.target.files[0]);
+  }
+
+  function processFile(file) {
+    currentFile = file;
+    document.getElementById('fileNameBadge').innerText = file.name;
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+        validateAndRender(json);
+      } catch (err) {
+        alert("Error al leer el archivo Excel: " + err.message);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
+  function loadSampleDemoData() {
+    currentFile = null;
+    document.getElementById('fileNameBadge').innerText = "plantilla_saber_tyt_demo.xlsx";
+    const sample = [
+      {
+        categoria: "Razonamiento Cuantitativo",
+        tipo: "MULTIPLE",
+        texto_base: "Un tren recorre 300 km en 3 horas a velocidad constante.",
+        pregunta: "¿Cuál es la velocidad promedio en km/h?",
+        opcion_a: "80", opcion_b: "90", opcion_c: "100", opcion_d: "120",
+        respuesta_correcta: "C",
+        retroalimentacion: "Velocidad = 300 km / 3 h = 100 km/h.",
+        puntaje: 2.50
+      },
+      {
+        categoria: "Lectura Crítica",
+        tipo: "VERDADERO_FALSO",
+        texto_base: "",
+        pregunta: "La tesis central de un ensayo argumentativo representa la postura principal que defiende el autor.",
+        opcion_a: "Verdadero", opcion_b: "Falso", opcion_c: "", opcion_d: "",
+        respuesta_correcta: "V",
+        retroalimentacion: "Correcto, la tesis es la idea principal a defender.",
+        puntaje: 2.50
+      },
+      {
+        // Fila con error intencional: respuesta correcta no permitida (R05)
+        categoria: "Competencias Ciudadanas",
+        tipo: "MULTIPLE",
+        texto_base: "",
+        pregunta: "¿Qué organismo vigila la conducta oficial de quienes desempeñan funciones públicas?",
+        opcion_a: "Fiscalía", opcion_b: "Procuraduría General", opcion_c: "Contraloría", opcion_d: "Defensoría",
+        respuesta_correcta: "Z", // ERROR
+        retroalimentacion: "La Procuraduría ejerce vigilancia sobre la conducta de los servidores públicos.",
+        puntaje: 2.50
+      },
+      {
+        // Fila con error intencional: enunciado vacío
+        categoria: "Inglés",
+        tipo: "MULTIPLE",
+        texto_base: "",
+        pregunta: "", // ERROR
+        opcion_a: "Option 1", opcion_b: "Option 2", opcion_c: "Option 3", opcion_d: "Option 4",
+        respuesta_correcta: "A",
+        retroalimentacion: "Test",
+        puntaje: 2.50
+      },
+      {
+        // Fila duplicada
+        categoria: "Razonamiento Cuantitativo",
+        tipo: "MULTIPLE",
+        texto_base: "Un tren recorre 300 km en 3 horas a velocidad constante.",
+        pregunta: "¿Cuál es la velocidad promedio en km/h?", // DUPLICADA
+        opcion_a: "80", opcion_b: "90", opcion_c: "100", opcion_d: "120",
+        respuesta_correcta: "C",
+        retroalimentacion: "Velocidad = 100 km/h",
+        puntaje: 2.50
+      }
+    ];
+
+    validateAndRender(sample);
+  }
+
+  function validateAndRender(rows) {
+    parsedRows = [];
+    let validCount = 0;
+    let duplicateCount = 0;
+    let errorCount = 0;
+    const seen = new Set();
+
+    const tbody = document.getElementById('previewTbody');
+    tbody.innerHTML = '';
+
+    rows.forEach((row, index) => {
+      const rowNum = index + 2;
+      let status = 'VALID';
+      let reason = 'Cumple todas las validaciones.';
+
+      const categoria = (row.categoria || '').toString().trim();
+      const tipo = (row.tipo || '').toString().trim().toUpperCase();
+      const pregunta = (row.pregunta || '').toString().trim();
+      const resp = (row.respuesta_correcta || '').toString().trim().toUpperCase();
+      const puntaje = parseFloat(row.puntaje || 0);
+
+      if (!pregunta) {
+        status = 'ERROR';
+        reason = `Fila ${rowNum} rechazada: El campo 'pregunta' es obligatorio y está vacío.`;
+      } else if (tipo !== 'MULTIPLE' && tipo !== 'VERDADERO_FALSO') {
+        status = 'ERROR';
+        reason = `Fila ${rowNum} rechazada: 'tipo' debe ser MULTIPLE o VERDADERO_FALSO.`;
+      } else if (tipo === 'MULTIPLE' && !['A', 'B', 'C', 'D'].includes(resp)) {
+        status = 'ERROR';
+        reason = `Fila ${rowNum} rechazada: Para opción múltiple 'respuesta_correcta' debe ser A, B, C o D (R05).`;
+      } else if (tipo === 'VERDADERO_FALSO' && !['V', 'F', 'VERDADERO', 'FALSO'].includes(resp)) {
+        status = 'ERROR';
+        reason = `Fila ${rowNum} rechazada: Para V/F 'respuesta_correcta' debe ser V o F (R06).`;
+      } else if (isNaN(puntaje) || puntaje <= 0) {
+        status = 'ERROR';
+        reason = `Fila ${rowNum} rechazada: El puntaje debe ser mayor que cero (R02).`;
+      } else if (seen.has(pregunta.toLowerCase())) {
+        status = 'DUPLICATE';
+        reason = `Fila ${rowNum} duplicada: Ya existe en este mismo archivo.`;
+      }
+
+      if (status === 'VALID') {
+        validCount++;
+        seen.add(pregunta.toLowerCase());
+      } else if (status === 'DUPLICATE') {
+        duplicateCount++;
+      } else {
+        errorCount++;
+      }
+
+      parsedRows.push({ ...row, rowNum, status, categoria, tipo, pregunta, resp, puntaje, reason });
+
+      const tr = document.createElement('tr');
+      let badgeClass = 'bg-emerald-100 text-emerald-800';
+      let statusLabel = 'VÁLIDA';
+
+      if (status === 'DUPLICATE') {
+        badgeClass = 'bg-amber-100 text-amber-800';
+        statusLabel = 'DUPLICADA';
+        tr.className = 'bg-amber-50/50';
+      } else if (status === 'ERROR') {
+        badgeClass = 'bg-red-100 text-red-800 font-bold';
+        statusLabel = 'ERROR';
+        tr.className = 'bg-red-50/50';
+      }
+
+      tr.innerHTML = `
+        <td class="py-2.5 px-3 font-bold text-slate-500">Fila ${rowNum}</td>
+        <td class="py-2.5 px-3"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${badgeClass}">${statusLabel}</span></td>
+        <td class="py-2.5 px-3 text-slate-800">${categoria || '-'}</td>
+        <td class="py-2.5 px-3 text-slate-600">${tipo || '-'}</td>
+        <td class="py-2.5 px-3 font-sans text-slate-800 text-xs">${pregunta ? (pregunta.length > 50 ? pregunta.substring(0, 50) + '...' : pregunta) : '<span class="text-red-500">[VACÍO]</span>'}</td>
+        <td class="py-2.5 px-3 font-bold text-center">${resp || '-'}</td>
+        <td class="py-2.5 px-3 font-mono">${puntaje.toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-[11px] ${status === 'ERROR' ? 'text-red-600 font-bold font-sans' : (status === 'DUPLICATE' ? 'text-amber-700 font-sans' : 'text-slate-500 font-sans')}">${reason}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('statTotal').innerText = rows.length;
+    document.getElementById('statValid').innerText = validCount;
+    document.getElementById('statDuplicate').innerText = duplicateCount;
+    document.getElementById('statError').innerText = errorCount;
+
+    document.getElementById('auditPanel').classList.remove('hidden');
+  }
+
+  async function confirmImport() {
+    const validRows = parsedRows.filter(r => r.status === 'VALID');
+    if (validRows.length === 0) {
+      alert("No hay preguntas válidas para importar.");
+      return;
+    }
+
+    const targetQuizId = document.getElementById('targetQuiz').value;
+    const confirmBtn = document.getElementById('confirmImportBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'Guardando en MySQL...';
+
+    try {
+      let res;
+      if (currentFile) {
+        const formData = new FormData();
+        formData.append('archivo', currentFile);
+        if (targetQuizId !== 'none') formData.append('cuestionario_id', targetQuizId);
+        res = await Auth.apiFetch('/api/banco/importar-excel/', { method: 'POST', body: formData });
+      } else {
+        res = await Auth.apiFetch('/api/banco/importar-excel/', {
+          method: 'POST',
+          body: JSON.stringify({
+            filas: validRows,
+            archivo_nombre: 'plantilla_saber_tyt_demo.xlsx',
+            cuestionario_id: (targetQuizId !== 'none' ? targetQuizId : null)
+          })
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error en importación.');
+
+      alert(`¡Éxito! Se han importado ${data.resumen?.validas || validRows.length} preguntas válidas al banco central en MySQL.\n(Las filas con error fueron descartadas sin alterar la base de datos según la Regla R10).`);
+      window.location.href = '/admin-panel/preguntas/';
+
+    } catch (e) {
+      alert('Error al importar: ' + e.message);
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = 'Confirmar e Importar al Banco ✓';
+    }
+  }
+
+  function resetImport() {
+    document.getElementById('auditPanel').classList.add('hidden');
+    document.getElementById('excelFileInput').value = '';
+    currentFile = null;
+    parsedRows = [];
+  }
+</script>
+{% endblock %}

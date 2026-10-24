@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados y Revisión - Saber TyT UniPutumayo{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+
+  <!-- Botón de Retorno -->
+  <div class="flex justify-between items-center">
+    <a href="/estudiante/" class="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+      <span>← Volver a Mis Cuestionarios</span>
+    </a>
+    <span class="text-xs text-slate-500 font-mono" id="resultsAttemptIdBadge">Intento #--</span>
+  </div>
+
+  <!-- Loading State -->
+  <div id="resultsLoading" class="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
+    <div class="w-10 h-10 border-4 border-uniblue border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+    <div class="font-bold text-sm text-slate-700">Cargando resultados y auditoría pedagógica...</div>
+  </div>
+
+  <!-- Contenedor Principal de Resultados -->
+  <div id="resultsContent" class="space-y-6 hidden">
+
+    <!-- Tarjeta Principal de Calificación (Hero Card) -->
+    <div class="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm text-center relative overflow-hidden">
+      
+      <!-- Badge Aprobado / Reprobado -->
+      <div class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" id="badgeEstado">
+        <!-- Generado dinámicamente -->
+      </div>
+
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1" id="quizTitleDisplay">
+        Resultado del Intento
+      </h1>
+      <p class="text-xs text-slate-500 mb-6">
+        Estudiante: <span id="studentResName" class="font-semibold text-slate-700">--</span> • 
+        Código: <span id="studentResCode" class="font-mono text-slate-600">--</span>
+      </p>
+
+      <!-- Bloque de Calificación en Decimal -->
+      <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 max-w-md mx-auto mb-6">
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Calificación Final Obtenida</div>
+        <div class="text-5xl font-black text-uniblue tracking-tight" id="scoreDisplay">
+          0.00 <span class="text-2xl text-slate-400 font-normal">/ 5.00</span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2">
+          Calculada automáticamente en Django con precisión <span class="font-bold text-slate-700 font-mono">DECIMAL(5,2)</span>.
+        </p>
+      </div>
+
+      <!-- Métricas Resumen -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+          <div class="text-[9px] uppercase text-slate-400 font-bold">Puntaje Total</div>
+          <div class="text-sm md:text-base font-bold text-slate-800 font-mono" id="rawScore">0.00 / 0.00 pts</div>
+        </div>
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+          <div class="text-[9px] uppercase text-slate-400 font-bold">Porcentaje</div>
+          <div class="text-sm md:text-base font-bold text-unigreen-dark font-mono" id="percentScore">0.0%</div>
+        </div>
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+          <div class="text-[9px] uppercase text-slate-400 font-bold">Aciertos</div>
+          <div class="text-sm md:text-base font-bold text-slate-800 font-mono" id="hitsCount">0 de 0</div>
+        </div>
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+          <div class="text-[9px] uppercase text-slate-400 font-bold">Tiempo Empleado</div>
+          <div class="text-sm md:text-base font-bold text-slate-800 font-mono" id="timeSpent">0m 0s</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Título de Sección de Revisión -->
+    <div class="flex items-center justify-between pt-2">
+      <div>
+        <h2 class="text-base md:text-lg font-bold text-slate-900">Revisión Reactivo por Reactivo</h2>
+        <p class="text-xs text-slate-500">Retroalimentación formativa y justificación didáctica.</p>
+      </div>
+      <span class="text-xs bg-uniblue/10 text-uniblue font-semibold px-2.5 py-1 rounded-lg">
+        Auditoría Pedagógica
+      </span>
+    </div>
+
+    <!-- Lista de Preguntas Revisadas -->
+    <div id="questionsReviewList" class="space-y-4">
+      <!-- Generado dinámicamente -->
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  Auth.requireAuth('/');
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadResults();
+  });
+
+  async function loadResults() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const intentoId = urlParams.get('intento_id') || urlParams.get('intento');
+
+    if (!intentoId) {
+      alert('No se especificó un intento válido.');
+      window.location.href = '/estudiante/';
+      return;
+    }
+
+    document.getElementById('resultsAttemptIdBadge').innerText = `Intento #${intentoId}`;
+
+    try {
+      const res = await Auth.apiFetch(`/api/evaluaciones/intentos/${intentoId}/revision/`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || 'No se pudieron consultar los resultados.');
+      }
+
+      renderResults(data);
+
+      document.getElementById('resultsLoading').classList.add('hidden');
+      document.getElementById('resultsContent').classList.remove('hidden');
+
+    } catch (e) {
+      document.getElementById('resultsLoading').innerHTML = `
+        <div class="p-6 text-center text-red-600">
+          <div class="text-3xl mb-2">🚫</div>
+          <div class="font-bold text-sm">${e.message}</div>
+          <a href="/estudiante/" class="inline-block mt-4 text-xs bg-uniblue text-white px-4 py-2 rounded-xl">
+            ← Volver a Mis Cuestionarios
+          </a>
+        </div>
+      `;
+    }
+  }
+
+  function renderResults(data) {
+    document.getElementById('quizTitleDisplay').innerText = data.cuestionario_nombre;
+    document.getElementById('studentResName').innerText = data.estudiante_nombre;
+    document.getElementById('studentResCode').innerText = data.estudiante_codigo || 'SIS-2026';
+
+    const calif = parseFloat(data.calificacion);
+    const maxGrade = parseFloat(data.cuestionario_calificacion_maxima || 5.00);
+    const passGrade = parseFloat(data.cuestionario_calificacion_aprobacion || 3.00);
+    const isApproved = (data.resultado === 'aprobado' || calif >= passGrade);
+
+    document.getElementById('scoreDisplay').innerHTML = `
+      ${calif.toFixed(2)} <span class="text-2xl text-slate-400 font-normal">/ ${maxGrade.toFixed(2)}</span>
+    `;
+
+    const badge = document.getElementById('badgeEstado');
+    if (isApproved) {
+      badge.className = "inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 bg-emerald-100 text-emerald-800 border border-emerald-300";
+      badge.innerText = "✓ INTENTO APROBADO";
+    } else {
+      badge.className = "inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 bg-red-100 text-red-800 border border-red-300";
+      badge.innerText = "✗ REPROBADO";
+    }
+
+    const earned = parseFloat(data.puntaje_obtenido);
+    const possible = parseFloat(data.puntaje_total_posible);
+    document.getElementById('rawScore').innerText = `${earned.toFixed(2)} / ${possible.toFixed(2)} pts`;
+    
+    const pct = (possible > 0) ? ((earned / possible) * 100).toFixed(1) : 0;
+    document.getElementById('percentScore').innerText = `${pct}%`;
+    document.getElementById('hitsCount').innerText = `${data.aciertos} de ${data.total_preguntas}`;
+
+    const m = Math.floor(data.duracion_segundos / 60);
+    const s = data.duracion_segundos % 60;
+    document.getElementById('timeSpent').innerText = `${m}m ${s}s`;
+
+    // Renderizar Preguntas
+    const listContainer = document.getElementById('questionsReviewList');
+    listContainer.innerHTML = '';
+
+    if (!data.permitir_revision) {
+      listContainer.innerHTML = `
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 text-center">
+          ℹ️ El docente ha configurado este cuestionario para no revelar respuestas correctas ni justificaciones detalladas.
+        </div>
+      `;
+      return;
+    }
+
+    data.respuestas.forEach((resp, idx) => {
+      const isCorrect = resp.es_acierto;
+      const isOmitted = (resp.opcion_seleccionada_letra === null);
+
+      let cardBorder = 'border-l-4 border-l-emerald-500';
+      let statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Correcta (+' + parseFloat(resp.puntaje_obtenido).toFixed(2) + ' pts)</span>';
+
+      if (isOmitted) {
+        cardBorder = 'border-l-4 border-l-amber-400';
+        statusBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Omitida / En blanco (0.00 pts - Regla R09)</span>';
+      } else if (!isCorrect) {
+        cardBorder = 'border-l-4 border-l-red-500';
+        statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Incorrecta (0.00 pts)</span>';
+      }
+
+      const card = document.createElement('div');
+      card.className = `bg-white rounded-3xl border border-slate-200 p-6 shadow-sm ${cardBorder} space-y-3`;
+
+      let optionsHtml = '';
+      (resp.todas_las_opciones || []).forEach(opt => {
+        let optStyle = 'border-slate-100 bg-slate-50 text-slate-700';
+        let mark = '';
+
+        if (opt.es_correcta) {
+          optStyle = 'border-emerald-300 bg-emerald-50 text-emerald-900 font-semibold';
+          mark = '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded">Respuesta Correcta</span>';
+        }
+
+        if (opt.letra === resp.opcion_seleccionada_letra && !isCorrect) {
+          optStyle = 'border-red-300 bg-red-50 text-red-900';
+          mark = '<span class="text-[10px] bg-red-500 text-white font-bold px-2 py-0.5 rounded">Tu Elección</span>';
+        } else if (opt.letra === resp.opcion_seleccionada_letra && isCorrect) {
+          mark = '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded">Tu Elección ✓</span>';
+        }
+
+        optionsHtml += `
+          <div class="flex justify-between items-center p-2.5 rounded-xl border text-xs ${optStyle}">
+            <span><strong>${opt.letra})</strong> ${opt.texto}</span>
+            ${mark}
+          </div>
+        `;
+      });
+
+      card.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-500">Reactivo ${idx + 1} • ${resp.categoria_nombre}</span>
+          ${statusBadge}
+        </div>
+        ${resp.texto_base ? `<div class="bg-slate-50 border-l-2 border-slate-300 p-2.5 rounded text-xs text-slate-600 italic">"${resp.texto_base}"</div>` : ''}
+        <div class="font-bold text-sm text-slate-900">${resp.enunciado}</div>
+        <div class="space-y-2 pt-1">
+          ${optionsHtml}
+        </div>
+        <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5 text-xs text-slate-700 mt-2">
+          <strong class="text-uniblue">Explicación pedagógica:</strong> ${resp.retroalimentacion || 'Justificación no disponible.'}
+        </div>
+      `;
+
+      listContainer.appendChild(card);
+    });
+  }
+</script>
+{% endblock %}

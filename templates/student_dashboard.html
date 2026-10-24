@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Portal del Estudiante - Simulador Saber TyT{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- Hero de Bienvenida -->
+  <div class="bg-gradient-to-r from-uniblue via-[#124B62] to-unidark rounded-3xl text-white p-6 md:p-8 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <span class="bg-unigreen/20 text-unigreen-light border border-unigreen/30 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+        Portal de Entrenamiento Saber TyT
+      </span>
+      <h1 class="text-2xl md:text-3xl font-extrabold mt-2">
+        ¡Bienvenido(a), <span id="welcomeStudentName">Estudiante</span>!
+      </h1>
+      <p class="text-slate-200 text-xs md:text-sm mt-1 max-w-xl">
+        Ingeniería de Sistemas • Cód: <span id="welcomeStudentCode" class="font-mono text-emerald-300">SIS-2026</span>. Cuestionarios autorizados en MySQL.
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-300 font-semibold flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sesión JWT Activa
+      </span>
+    </div>
+  </div>
+
+  <!-- 4 Métricas Clave -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Cuestionarios Activos</div>
+      <div class="text-3xl font-black text-uniblue mt-1" id="statQuizzesActive">0</div>
+      <div class="text-[11px] text-emerald-600 font-medium mt-1">● Disponibles para rendir</div>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Intentos Realizados</div>
+      <div class="text-3xl font-black text-slate-800 mt-1" id="statAttemptsCount">0</div>
+      <div class="text-[11px] text-slate-500 font-medium mt-1">Registrados en servidor</div>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Última Calificación</div>
+      <div class="text-3xl font-black text-emerald-600 mt-1" id="statLastGrade">--</div>
+      <div class="text-[11px] text-slate-500 font-medium mt-1">Escala DECIMAL(5,2)</div>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Estado Global</div>
+      <div class="text-xl md:text-2xl font-black text-unigreen mt-2" id="statGlobalStatus">
+        EN CURSO
+      </div>
+      <div class="text-[11px] text-slate-500 font-medium mt-1">Aprobación ≥ 3.00</div>
+    </div>
+  </div>
+
+  <!-- Cuestionarios Disponibles (Sec 2.5: Solo cuestionarios disponibles) -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-lg md:text-xl font-bold text-slate-900">Cuestionarios Habilitados para Evaluación</h2>
+        <p class="text-xs text-slate-500">Filtrados automáticamente en Django según fechas de disponibilidad (Regla R08).</p>
+      </div>
+      <button onclick="loadDashboardData()" class="text-xs text-uniblue hover:underline flex items-center gap-1">
+        <span>🔄</span> <span>Actualizar</span>
+      </button>
+    </div>
+
+    <!-- Grid de Cuestionarios -->
+    <div id="quizzesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="col-span-full text-center py-10 bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
+        Cargando cuestionarios disponibles desde el servidor Django...
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de Intentos -->
+  <div id="historial" class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Historial de Mis Intentos</h2>
+        <p class="text-xs text-slate-500">Aislamiento por usuario autenticado JWT (Sec 2.5).</p>
+      </div>
+      <span class="text-xs font-mono bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg" id="attemptsTotalBadge">0 Intentos</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 text-slate-600 uppercase border-y border-slate-200">
+          <tr>
+            <th class="py-3 px-4">Cuestionario</th>
+            <th class="py-3 px-4">Fecha y Hora</th>
+            <th class="py-3 px-4 text-center">Intento #</th>
+            <th class="py-3 px-4">Duración</th>
+            <th class="py-3 px-4">Puntaje</th>
+            <th class="py-3 px-4">Calificación</th>
+            <th class="py-3 px-4">Resultado</th>
+            <th class="py-3 px-4 text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="attemptsTableBody" class="divide-y divide-slate-100 font-mono">
+          <tr>
+            <td colspan="8" class="text-center py-6 text-slate-400 font-sans">No hay intentos registrados todavía.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  Auth.requireAuth('/');
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const user = Auth.getUser();
+    if (user) {
+      document.getElementById('welcomeStudentName').innerText = user.first_name || user.username;
+      document.getElementById('welcomeStudentCode').innerText = user.codigo_estudiantil || user.username;
+    }
+    loadDashboardData();
+  });
+
+  async function loadDashboardData() {
+    await Promise.all([
+      loadQuizzes(),
+      loadAttempts()
+    ]);
+  }
+
+  async function loadQuizzes() {
+    const container = document.getElementById('quizzesGrid');
+    try {
+      const res = await Auth.apiFetch('/api/cuestionarios/disponibles/');
+      if (!res.ok) throw new Error('Error al consultar cuestionarios.');
+      const data = await res.json();
+
+      document.getElementById('statQuizzesActive').innerText = data.length;
+
+      if (data.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-10 bg-white rounded-2xl border border-dashed border-slate-300 text-slate-500 text-xs">
+            No tienes cuestionarios disponibles en este momento. Las evaluaciones abren según el calendario de tus docentes.
+          </div>
+        `;
+        return;
+      }
+
+      const currentUser = Auth.getUser();
+      const isEstudiante = (!currentUser || currentUser.rol?.nombre === 'Estudiante');
+
+      container.innerHTML = data.map(q => {
+        const puedeIniciar = q.puede_iniciar;
+        const intentosText = `${q.intentos_realizados} de ${q.intentos_permitidos} permitidos`;
+        
+        let actionBtn = '';
+        if (!isEstudiante) {
+          actionBtn = `
+            <a href="/admin-panel/" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold py-2.5 rounded-xl transition text-xs shadow-xs flex items-center justify-center gap-2">
+              <span>🛡️ Modo Docente: Previsualizar en Panel</span> →
+            </a>
+          `;
+        } else if (puedeIniciar) {
+          actionBtn = `
+            <button onclick="startQuiz(${q.id})" class="w-full bg-uniblue hover:bg-uniblue-dark text-white font-bold py-2.5 rounded-xl transition text-xs shadow-sm flex items-center justify-center gap-2">
+              <span>Presentar Evaluación</span> →
+            </button>
+          `;
+        } else {
+          actionBtn = `
+            <button disabled class="w-full bg-slate-200 text-slate-500 font-bold py-2.5 rounded-xl text-xs cursor-not-allowed">
+              ${q.motivo_no_disponible || 'No disponible'}
+            </button>
+          `;
+        }
+
+        const fApertura = new Date(q.fecha_apertura).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const fCierre = new Date(q.fecha_cierre).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="bg-white rounded-3xl border-2 border-uniblue/30 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start gap-2 mb-3">
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Disponible Ahora
+                </span>
+                <span class="text-[11px] text-slate-500 font-medium">Cierre: ${fCierre}</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mb-1">${q.nombre}</h3>
+              <p class="text-xs text-slate-600 mb-4">${q.descripcion || 'Sin instrucciones adicionales.'}</p>
+
+              <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl text-center text-xs text-slate-700 mb-4">
+                <div>
+                  <div class="text-slate-400 text-[9px] uppercase font-bold">Tiempo</div>
+                  <div class="font-bold text-slate-900">${q.tiempo_limite_minutos} min</div>
+                </div>
+                <div>
+                  <div class="text-slate-400 text-[9px] uppercase font-bold">Intentos</div>
+                  <div class="font-bold text-slate-900">${intentosText}</div>
+                </div>
+                <div>
+                  <div class="text-slate-400 text-[9px] uppercase font-bold">Aprobación</div>
+                  <div class="font-bold text-slate-900">${parseFloat(q.calificacion_aprobacion).toFixed(2)} / ${parseFloat(q.calificacion_maxima).toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+    } catch (e) {
+      container.innerHTML = `<div class="col-span-full p-4 bg-red-50 text-red-700 text-xs rounded-xl">${e.message}</div>`;
+    }
+  }
+
+  async function loadAttempts() {
+    const tbody = document.getElementById('attemptsTableBody');
+    try {
+      const res = await Auth.apiFetch('/api/evaluaciones/mis-intentos/');
+      if (!res.ok) throw new Error('Error consultando historial.');
+      const data = await res.json();
+
+      document.getElementById('statAttemptsCount').innerText = data.length;
+      document.getElementById('attemptsTotalBadge').innerText = `${data.length} Intentos`;
+
+      if (data.length > 0) {
+        const last = data[0];
+        document.getElementById('statLastGrade').innerText = parseFloat(last.calificacion).toFixed(2);
+        
+        const globalStatEl = document.getElementById('statGlobalStatus');
+        if (last.resultado === 'aprobado') {
+          globalStatEl.innerText = 'APROBADO ✓';
+          globalStatEl.className = 'text-xl md:text-2xl font-black text-emerald-600 mt-2';
+        } else {
+          globalStatEl.innerText = 'REPROBADO';
+          globalStatEl.className = 'text-xl md:text-2xl font-black text-red-600 mt-2';
+        }
+
+        tbody.innerHTML = data.map(att => {
+          const f = new Date(att.fecha_inicio).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const m = Math.floor(att.duracion_segundos / 60);
+          const s = att.duracion_segundos % 60;
+          const durText = `${m}m ${s}s`;
+
+          let resBadge = '';
+          if (att.resultado === 'aprobado') {
+            resBadge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">APROBADO</span>';
+          } else if (att.resultado === 'reprobado') {
+            resBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full">REPROBADO</span>';
+          } else {
+            resBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">EN CURSO</span>';
+          }
+
+          let action = `<a href="/estudiante/resultados/?intento_id=${att.id}" class="bg-uniblue/10 hover:bg-uniblue hover:text-white text-uniblue font-semibold px-2.5 py-1 rounded-lg transition text-[11px] font-sans">Ver Revisión 👁</a>`;
+
+          return `
+            <tr class="hover:bg-slate-50 transition">
+              <td class="py-3 px-4 font-bold text-slate-900 font-sans">${att.cuestionario_nombre}</td>
+              <td class="py-3 px-4 text-slate-500">${f}</td>
+              <td class="py-3 px-4 text-center font-bold">${att.numero_intento}</td>
+              <td class="py-3 px-4 text-slate-600">${durText}</td>
+              <td class="py-3 px-4">${parseFloat(att.puntaje_obtenido).toFixed(2)} / ${parseFloat(att.puntaje_total_posible).toFixed(2)}</td>
+              <td class="py-3 px-4 font-bold text-slate-900 text-sm">${parseFloat(att.calificacion).toFixed(2)}</td>
+              <td class="py-3 px-4">${resBadge}</td>
+              <td class="py-3 px-4 text-center">${action}</td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400 font-sans">Aún no has presentado intentos de evaluación.</td></tr>`;
+      }
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-red-500">${e.message}</td></tr>`;
+    }
+  }
+
+  function startQuiz(cuestionarioId) {
+    sessionStorage.setItem('active_cuestionario_id', cuestionarioId);
+    window.location.href = `/estudiante/examen/?cuestionario_id=${cuestionarioId}`;
+  }
+</script>
+{% endblock %}

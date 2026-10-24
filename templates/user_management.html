@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Usuarios, Roles y Permisos - UniPutumayo{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+  
+  <!-- Topbar -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-200">
+    <div>
+      <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 mb-1">
+        <span>UniPutumayo</span>
+        <span>/</span>
+        <a href="/admin-panel/" class="hover:underline">Administración</a>
+        <span>/</span>
+        <span class="text-uniblue font-semibold">Usuarios y Roles</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Administración de Usuarios y Roles Configurables</h1>
+      <p class="text-xs text-slate-500">Control de acceso JWT, activación/desactivación de cuentas y asignación atómica de permisos (Sec 2.1 y 2.2).</p>
+    </div>
+
+      <!-- Selector de Pestañas -->
+      <div class="flex bg-slate-200/80 p-1 rounded-2xl text-xs font-bold">
+        <button id="tabUsersBtn" onclick="switchTab('users')" class="px-4 py-2 rounded-xl bg-white text-uniblue shadow-sm transition">
+          👤 Usuarios (<span id="countUsersBadge">0</span>)
+        </button>
+        <button id="tabRolesBtn" onclick="switchTab('roles')" class="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
+          🛡️ Roles y Permisos (<span id="countRolesBadge">0</span>)
+        </button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 1: USUARIOS DEL SISTEMA -->
+    <div id="sectionUsers" class="space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-2 flex-grow">
+          <input type="text" id="userSearchInput" oninput="filterUsers()" placeholder="Buscar usuario por nombre, código o email..." class="text-xs px-3 py-2 rounded-xl border border-slate-300 w-full sm:w-72">
+        </div>
+        <button onclick="openCreateUserModal()" class="bg-uniblue hover:bg-uniblue-dark text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
+          <span>+</span> <span>Nuevo Usuario</span>
+        </button>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Usuario / Nombre</th>
+                <th class="py-3 px-4">Código / Documento</th>
+                <th class="py-3 px-4">Correo Electrónico</th>
+                <th class="py-3 px-4">Rol Asignado</th>
+                <th class="py-3 px-4">Estado Cuenta</th>
+                <th class="py-3 px-4 text-center">Acción (Control JWT)</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody" class="divide-y divide-slate-100">
+              <tr><td colspan="6" class="text-center py-6 text-slate-400">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 2: ROLES Y PERMISOS CONFIGURABLES -->
+    <div id="sectionRoles" class="space-y-4 hidden">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-amber-50/50 p-4 rounded-2xl border border-amber-200 shadow-sm">
+        <div>
+          <h3 class="font-bold text-xs text-amber-900 uppercase">Gestor de Roles Dinámicos</h3>
+          <p class="text-[11px] text-amber-700">Crea roles como <strong>Docente Evaluador</strong> con permisos específicos para crear preguntas y cuestionarios, sin administrar usuarios.</p>
+        </div>
+        <button onclick="openCreateRoleModal()" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
+          <span>+</span> <span>Crear Rol Personalizado</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="rolesGrid">
+        <div class="col-span-full text-center py-6 text-slate-400 text-xs">Cargando roles...</div>
+      </div>
+    </div>
+
+  </div>
+
+<!-- Modal: Crear Usuario -->
+<div id="modalUser" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <h3 class="font-bold text-base text-slate-900">Registrar Nuevo Usuario</h3>
+      <button onclick="closeUserModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+    </div>
+
+    <form id="formNewUser" onsubmit="handleCreateUser(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Nombre de Usuario (Username) *</label>
+        <input type="text" id="newUsername" required placeholder="Ej. estudiante3" class="w-full p-2.5 rounded-xl border border-slate-300">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nombres *</label>
+          <input type="text" id="newFirstName" required placeholder="Juan" class="w-full p-2.5 rounded-xl border border-slate-300">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Apellidos *</label>
+          <input type="text" id="newLastName" required placeholder="Pérez" class="w-full p-2.5 rounded-xl border border-slate-300">
+        </div>
+      </div>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Código Estudiantil o Cédula *</label>
+        <input type="text" id="newStudentCode" required placeholder="SIS-2026-03" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+      </div>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Correo Institucional *</label>
+        <input type="email" id="newEmail" required placeholder="usuario@uniputumayo.edu.co" class="w-full p-2.5 rounded-xl border border-slate-300">
+      </div>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Rol en el Sistema *</label>
+        <select id="newUserRole" required class="w-full p-2.5 rounded-xl border border-slate-300 bg-white font-medium text-slate-800">
+          <!-- Opciones cargadas por JS -->
+        </select>
+      </div>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Contraseña Inicial *</label>
+        <input type="password" id="newPassword" required minlength="6" value="clave123" class="w-full p-2.5 rounded-xl border border-slate-300">
+        <p class="text-[10px] text-slate-400 mt-1">Mínimo 6 caracteres.</p>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeUserModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">Cancelar</button>
+        <button type="submit" class="px-5 py-2 rounded-xl bg-uniblue hover:bg-uniblue-dark text-white font-bold shadow">Guardar Usuario</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Crear Rol Configurable con Permisos Granulares -->
+<div id="modalRole" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <div>
+        <h3 class="font-bold text-base text-slate-900">Crear Rol Personalizado</h3>
+        <p class="text-[11px] text-slate-500">Configura individualmente las funcionalidades autorizadas (Sec 2.2).</p>
+      </div>
+      <button onclick="closeRoleModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+    </div>
+
+    <form id="formNewRole" onsubmit="handleCreateRole(event)" class="space-y-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Nombre del Rol *</label>
+        <input type="text" id="newRoleName" required placeholder="Ej. Docente Evaluador, Tutor Práctico" class="w-full p-2.5 rounded-xl border border-slate-300">
+      </div>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Descripción de Responsabilidades</label>
+        <textarea id="newRoleDesc" rows="2" placeholder="Explica las funciones que desempeñará este rol..." class="w-full p-2.5 rounded-xl border border-slate-300"></textarea>
+      </div>
+
+      <!-- Matriz de Permisos Individuales -->
+      <div>
+        <label class="block font-bold text-slate-700 mb-2">Permisos Habilitados para este Rol *</label>
+        <div id="permissionsCheckboxList" class="space-y-3 bg-slate-50 p-3 rounded-2xl border border-slate-200 max-h-56 overflow-y-auto">
+          <!-- Renderizado dinámico de checkboxes -->
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeRoleModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">Cancelar</button>
+        <button type="submit" class="px-5 py-2 rounded-xl bg-uniaccent hover:bg-amber-600 text-white font-bold shadow">Guardar Rol Configurable</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  Auth.requireAuth('/');
+  Auth.requireAdmin('/estudiante/');
+
+  let cachedUsers = [];
+  let cachedRoles = [];
+  let cachedPermissions = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadAllData();
+  });
+
+  function switchTab(tab) {
+    const sUsers = document.getElementById('sectionUsers');
+    const sRoles = document.getElementById('sectionRoles');
+    const bUsers = document.getElementById('tabUsersBtn');
+    const bRoles = document.getElementById('tabRolesBtn');
+
+    if (tab === 'users') {
+      sUsers.classList.remove('hidden');
+      sRoles.classList.add('hidden');
+      bUsers.className = 'px-4 py-2 rounded-xl bg-white text-uniblue shadow-sm transition';
+      bRoles.className = 'px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition';
+    } else {
+      sUsers.classList.add('hidden');
+      sRoles.classList.remove('hidden');
+      bRoles.className = 'px-4 py-2 rounded-xl bg-white text-uniblue shadow-sm transition';
+      bUsers.className = 'px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition';
+    }
+  }
+
+  async function loadAllData() {
+    await Promise.all([
+      loadUsers(),
+      loadRoles(),
+      loadPermissions()
+    ]);
+  }
+
+  async function loadUsers() {
+    try {
+      const res = await Auth.apiFetch('/api/auth/usuarios/');
+      cachedUsers = await res.json();
+      document.getElementById('countUsersBadge').innerText = cachedUsers.length;
+      renderUsersTable(cachedUsers);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderUsersTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    if (!users || users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No se encontraron usuarios.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = users.map(u => {
+      const rolName = u.rol_detalle ? u.rol_detalle.nombre : 'Sin Rol';
+      const isActive = u.is_active;
+
+      let badgeRol = '';
+      if (rolName === 'Administrador') {
+        badgeRol = '<span class="bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded-full text-[10px]">Administrador</span>';
+      } else if (rolName === 'Estudiante') {
+        badgeRol = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full text-[10px]">Estudiante</span>';
+      } else {
+        badgeRol = `<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full text-[10px]">${rolName}</span>`;
+      }
+
+      let badgeActive = isActive 
+        ? '<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">● Activa</span>'
+        : '<span class="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded-full text-[10px]">● Desactivada</span>';
+
+      return `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3 px-4 font-bold text-slate-900 font-sans">
+            ${u.username}
+            <div class="text-[11px] text-slate-500 font-normal">${u.full_name || '-'}</div>
+          </td>
+          <td class="py-3 px-4 font-mono text-slate-700">${u.codigo_estudiantil || '-'}</td>
+          <td class="py-3 px-4 text-slate-600 font-sans">${u.email || '-'}</td>
+          <td class="py-3 px-4 font-sans">${badgeRol}</td>
+          <td class="py-3 px-4 font-sans">${badgeActive}</td>
+          <td class="py-3 px-4 text-center font-sans">
+            <button onclick="toggleUserActive(${u.id})" class="text-xs font-semibold px-3 py-1 rounded-lg transition ${
+              isActive 
+                ? 'text-red-600 hover:bg-red-50 border border-red-200' 
+                : 'text-emerald-700 hover:bg-emerald-50 border border-emerald-300'
+            }">
+              ${isActive ? 'Desactivar Cuenta' : 'Activar Cuenta'}
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function filterUsers() {
+    const q = document.getElementById('userSearchInput').value.toLowerCase();
+    const filtered = cachedUsers.filter(u => 
+      (u.username || '').toLowerCase().includes(q) ||
+      (u.full_name || '').toLowerCase().includes(q) ||
+      (u.codigo_estudiantil || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q)
+    );
+    renderUsersTable(filtered);
+  }
+
+  async function toggleUserActive(userId) {
+    try {
+      const res = await Auth.apiFetch(`/api/auth/usuarios/${userId}/toggle-active/`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error al cambiar estado.');
+      loadUsers();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function loadRoles() {
+    try {
+      const res = await Auth.apiFetch('/api/auth/roles/');
+      cachedRoles = await res.json();
+      document.getElementById('countRolesBadge').innerText = cachedRoles.length;
+      renderRolesGrid(cachedRoles);
+      populateRoleSelect();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderRolesGrid(roles) {
+    const container = document.getElementById('rolesGrid');
+    if (!roles || roles.length === 0) {
+      container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400">No hay roles registrados.</div>`;
+      return;
+    }
+
+    container.innerHTML = roles.map(r => {
+      const isPredet = r.es_predeterminado;
+      const permisos = r.permisos_detalle || [];
+
+      return `
+        <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex justify-between items-start gap-2 mb-2">
+              <span class="text-xs font-bold ${isPredet ? 'text-uniblue' : 'text-amber-700'} uppercase tracking-wider">
+                ${isPredet ? '★ Rol Predeterminado' : '⚙️ Rol Personalizado'}
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${r.activo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+                ${r.activo ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">${r.nombre}</h3>
+            <p class="text-xs text-slate-500 mb-3">${r.descripcion || 'Sin descripción.'}</p>
+
+            <div class="border-t border-slate-100 pt-3">
+              <div class="text-[11px] font-bold text-slate-700 uppercase mb-2">
+                Funcionalidades Autorizadas (${permisos.length}):
+              </div>
+              <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                ${permisos.map(p => `
+                  <span class="bg-slate-100 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded-md" title="${p.descripcion || p.codigo}">
+                    ✓ ${p.nombre}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-3 flex justify-between items-center text-xs">
+            <span class="text-slate-400 text-[11px]">${r.usuarios_count || 0} usuarios asociados</span>
+            ${!isPredet || r.nombre !== 'Administrador' ? `
+              <button onclick="toggleRoleActive(${r.id})" class="text-[11px] font-semibold text-slate-600 hover:text-red-600">
+                ${r.activo ? 'Desactivar Rol' : 'Activar Rol'}
+              </button>
+            ` : '<span class="text-[10px] text-slate-400">Protegido</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function toggleRoleActive(roleId) {
+    try {
+      const res = await Auth.apiFetch(`/api/auth/roles/${roleId}/toggle-active/`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error al cambiar estado.');
+      loadRoles();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function loadPermissions() {
+    try {
+      const res = await Auth.apiFetch('/api/auth/permisos/');
+      cachedPermissions = await res.json();
+      renderPermissionsCheckboxes();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderPermissionsCheckboxes() {
+    const container = document.getElementById('permissionsCheckboxList');
+    if (!container) return;
+
+    // Agrupar por módulo
+    const byModulo = {};
+    cachedPermissions.forEach(p => {
+      if (!byModulo[p.modulo]) byModulo[p.modulo] = [];
+      byModulo[p.modulo].push(p);
+    });
+
+    let html = '';
+    for (const [modulo, perms] of Object.entries(byModulo)) {
+      html += `
+        <div class="mb-2">
+          <div class="text-[10px] font-bold text-uniblue uppercase tracking-wider mb-1">${modulo}</div>
+          <div class="space-y-1 pl-2">
+            ${perms.map(p => `
+              <label class="flex items-start gap-2 cursor-pointer text-slate-700 hover:text-slate-900">
+                <input type="checkbox" name="role_perm" value="${p.id}" class="w-3.5 h-3.5 text-unigreen rounded mt-0.5">
+                <div>
+                  <div class="font-bold text-[11px]">${p.nombre}</div>
+                  <div class="text-[10px] text-slate-400">${p.descripcion || p.codigo}</div>
+                </div>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    container.innerHTML = html;
+  }
+
+  function populateRoleSelect() {
+    const sel = document.getElementById('newUserRole');
+    if (!sel) return;
+    sel.innerHTML = cachedRoles.map(r => `<option value="${r.id}">${r.nombre} (${r.activo ? 'Activo' : 'Inactivo'})</option>`).join('');
+  }
+
+  // Modales
+  function openCreateUserModal() {
+    document.getElementById('modalUser').classList.remove('hidden');
+  }
+  function closeUserModal() {
+    document.getElementById('modalUser').classList.add('hidden');
+  }
+
+  function openCreateRoleModal() {
+    document.getElementById('modalRole').classList.remove('hidden');
+  }
+  function closeRoleModal() {
+    document.getElementById('modalRole').classList.add('hidden');
+  }
+
+  async function handleCreateUser(e) {
+    e.preventDefault();
+    const username = document.getElementById('newUsername').value.trim();
+    const first_name = document.getElementById('newFirstName').value.trim();
+    const last_name = document.getElementById('newLastName').value.trim();
+    const codigo_estudiantil = document.getElementById('newStudentCode').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const rol_id = document.getElementById('newUserRole').value;
+    const password = document.getElementById('newPassword').value;
+
+    try {
+      const res = await Auth.apiFetch('/api/auth/usuarios/', {
+        method: 'POST',
+        body: JSON.stringify({
+          username, first_name, last_name, codigo_estudiantil, email, rol_id, password, is_active: true
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = JSON.stringify(data);
+        throw new Error(msg);
+      }
+
+      alert('¡Usuario creado exitosamente!');
+      closeUserModal();
+      document.getElementById('formNewUser').reset();
+      loadUsers();
+    } catch (err) {
+      alert('Error al crear usuario: ' + err.message);
+    }
+  }
+
+  async function handleCreateRole(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('newRoleName').value.trim();
+    const descripcion = document.getElementById('newRoleDesc').value.trim();
+    const checkboxes = document.querySelectorAll('input[name="role_perm"]:checked');
+    const permisos_ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+    try {
+      const res = await Auth.apiFetch('/api/auth/roles/', {
+        method: 'POST',
+        body: JSON.stringify({
+          nombre, descripcion, activo: true, permisos_ids
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(JSON.stringify(data));
+
+      alert(`¡Rol configurable "${nombre}" creado con éxito con ${permisos_ids.length} permisos!`);
+      closeRoleModal();
+      document.getElementById('formNewRole').reset();
+      loadRoles();
+    } catch (err) {
+      alert('Error al crear rol: ' + err.message);
+    }
+  }
+</script>
+{% endblock %}

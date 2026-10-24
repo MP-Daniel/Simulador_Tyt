@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Banco de Preguntas - Simulador Saber TyT{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+  
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-200">
+    <div>
+      <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 mb-1">
+        <span>UniPutumayo</span>
+        <span>/</span>
+        <span class="text-uniblue font-semibold">Banco de Preguntas</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Banco Central de Reactivos Saber TyT</h1>
+      <p class="text-xs text-slate-500">Reactivos organizados por competencia (Sec 2.3) y almacenados en MySQL.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="openQuestionModal()" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
+        <span>+</span> <span>Nueva Pregunta</span>
+      </button>
+      <a href="/admin-panel/importar-excel/" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
+        <span>📥</span> <span>Carga Masiva Excel</span>
+      </a>
+    </div>
+  </div>
+      <div class="flex gap-2">
+        <button onclick="openQuestionModal()" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
+          <span>+</span> <span>Nueva Pregunta</span>
+        </button>
+        <a href="/admin-panel/importar-excel/" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
+          <span>📥</span> <span>Carga Masiva Excel</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+      <div class="flex flex-wrap gap-2 items-center flex-grow">
+        <input type="text" id="searchInput" oninput="filterQuestions()" placeholder="Buscar enunciado o concepto..." class="text-xs px-3 py-2 rounded-xl border border-slate-300 w-full sm:w-64">
+        
+        <select id="categoryFilter" onchange="filterQuestions()" class="text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white">
+          <option value="">Todas las Competencias</option>
+        </select>
+
+        <select id="typeFilter" onchange="filterQuestions()" class="text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white">
+          <option value="">Todos los Tipos</option>
+          <option value="MULTIPLE">Selección Múltiple</option>
+          <option value="VERDADERO_FALSO">Verdadero / Falso</option>
+        </select>
+      </div>
+      <div class="text-xs text-slate-500 font-mono font-bold" id="questionsCountBadge">
+        0 Reactivos
+      </div>
+    </div>
+
+    <!-- Tabla de Preguntas -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4 w-12">ID</th>
+              <th class="py-3 px-4">Competencia / Categoría</th>
+              <th class="py-3 px-4">Tipo</th>
+              <th class="py-3 px-4 w-2/5">Enunciado & Contexto</th>
+              <th class="py-3 px-4">Resp.</th>
+              <th class="py-3 px-4">Puntaje</th>
+              <th class="py-3 px-4">Estado</th>
+              <th class="py-3 px-4 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="questionsTbody" class="divide-y divide-slate-100">
+            <tr><td colspan="8" class="text-center py-6 text-slate-400">Cargando reactivos desde MySQL...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+<!-- Modal: Crear/Editar Pregunta -->
+<div id="modalQuestion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <h3 class="font-bold text-base text-slate-900">Registrar Pregunta en el Banco</h3>
+      <button onclick="closeQuestionModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+    </div>
+
+    <form id="formQuestion" onsubmit="handleSaveQuestion(event)" class="space-y-4 text-xs">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Competencia / Categoría *</label>
+          <select id="modalCategory" required class="w-full p-2.5 rounded-xl border border-slate-300 bg-white">
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tipo de Pregunta *</label>
+          <select id="modalType" onchange="updateModalOptionsType()" class="w-full p-2.5 rounded-xl border border-slate-300 bg-white">
+            <option value="MULTIPLE">Selección Múltiple (4 opciones)</option>
+            <option value="VERDADERO_FALSO">Verdadero / Falso (2 opciones)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Texto Base / Contexto (Opcional)</label>
+        <textarea id="modalTextBase" rows="2" placeholder="Lectura, contexto o caso introductorio..." class="w-full p-2.5 rounded-xl border border-slate-300"></textarea>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Enunciado de la Pregunta *</label>
+        <textarea id="modalStatement" required rows="2" placeholder="Formulación explícita de la pregunta..." class="w-full p-2.5 rounded-xl border border-slate-300"></textarea>
+      </div>
+
+      <!-- Opciones y Respuesta Correcta -->
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+        <div class="flex justify-between items-center">
+          <label class="font-bold text-slate-700">Alternativas y Respuesta Correcta (Regla R05) *</label>
+          <span class="text-[10px] text-slate-400">Selecciona el radio botón de la opción correcta</span>
+        </div>
+
+        <div id="optionsInputsArea" class="space-y-2">
+          <!-- Renderizado por JS según tipo -->
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Puntaje Base (R02 > 0) *</label>
+          <input type="number" step="0.1" min="0.5" id="modalPoints" value="2.50" required class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Retroalimentación Didáctica</label>
+          <input type="text" id="modalFeedback" placeholder="Justificación de la respuesta correcta..." class="w-full p-2.5 rounded-xl border border-slate-300">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeQuestionModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">Cancelar</button>
+        <button type="submit" class="px-5 py-2 rounded-xl bg-uniblue hover:bg-uniblue-dark text-white font-bold shadow">Guardar Reactivo</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  Auth.requireAuth('/');
+
+  let allQuestions = [];
+  let allCategories = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+    loadQuestions();
+  });
+
+  async function loadCategories() {
+    try {
+      const res = await Auth.apiFetch('/api/banco/categorias/');
+      allCategories = await res.json();
+      
+      const filterSel = document.getElementById('categoryFilter');
+      const modalSel = document.getElementById('modalCategory');
+
+      filterSel.innerHTML = '<option value="">Todas las Competencias</option>' + 
+        allCategories.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+
+      modalSel.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadQuestions() {
+    try {
+      const res = await Auth.apiFetch('/api/banco/preguntas/');
+      allQuestions = await res.json();
+      document.getElementById('questionsCountBadge').innerText = `${allQuestions.length} Reactivos`;
+      renderQuestionsTable(allQuestions);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderQuestionsTable(questions) {
+    const tbody = document.getElementById('questionsTbody');
+    if (!questions || questions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No se encontraron preguntas en el banco.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = questions.map(q => {
+      const corrOpt = (q.opciones || []).find(o => o.es_correcta);
+      const corrLetter = corrOpt ? corrOpt.letra : '-';
+
+      return `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3 px-4 font-mono font-bold text-slate-400">#${q.id}</td>
+          <td class="py-3 px-4 font-bold text-uniblue">${q.categoria_nombre}</td>
+          <td class="py-3 px-4 text-slate-600 font-mono text-[11px]">${q.tipo}</td>
+          <td class="py-3 px-4 text-slate-900 font-medium">
+            ${q.enunciado}
+            ${q.texto_base ? `<div class="text-[10px] text-slate-400 italic line-clamp-1">Contexto: "${q.texto_base}"</div>` : ''}
+          </td>
+          <td class="py-3 px-4 text-center font-bold text-emerald-700 bg-emerald-50/50 rounded-lg font-mono">${corrLetter}</td>
+          <td class="py-3 px-4 font-mono">${parseFloat(q.puntaje).toFixed(2)}</td>
+          <td class="py-3 px-4">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${q.activo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+              ${q.activo ? 'Activa' : 'Inactiva'}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="toggleQuestionActive(${q.id})" class="text-[11px] ${q.activo ? 'text-red-500 hover:underline' : 'text-emerald-600 hover:underline'}">
+              ${q.activo ? 'Desactivar' : 'Activar'}
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function filterQuestions() {
+    const s = document.getElementById('searchInput').value.toLowerCase();
+    const cat = document.getElementById('categoryFilter').value;
+    const tipo = document.getElementById('typeFilter').value;
+
+    const filtered = allQuestions.filter(q => {
+      const matchS = (q.enunciado || '').toLowerCase().includes(s) || (q.texto_base || '').toLowerCase().includes(s);
+      const matchCat = !cat || String(q.categoria) === String(cat);
+      const matchTipo = !tipo || q.tipo === tipo;
+      return matchS && matchCat && matchTipo;
+    });
+
+    renderQuestionsTable(filtered);
+  }
+
+  async function toggleQuestionActive(id) {
+    try {
+      const res = await Auth.apiFetch(`/api/banco/preguntas/${id}/toggle-active/`, { method: 'POST' });
+      if (!res.ok) throw new Error('Error al cambiar estado.');
+      loadQuestions();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  function openQuestionModal() {
+    updateModalOptionsType();
+    document.getElementById('modalQuestion').classList.remove('hidden');
+  }
+
+  function closeQuestionModal() {
+    document.getElementById('modalQuestion').classList.add('hidden');
+  }
+
+  function updateModalOptionsType() {
+    const tipo = document.getElementById('modalType').value;
+    const area = document.getElementById('optionsInputsArea');
+
+    if (tipo === 'MULTIPLE') {
+      area.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="radio" name="modalCorr" value="A" checked class="text-unigreen">
+          <span class="font-bold w-4">A)</span>
+          <input type="text" id="optA" required placeholder="Opción A" class="w-full p-2 rounded-xl border border-slate-300">
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="radio" name="modalCorr" value="B" class="text-unigreen">
+          <span class="font-bold w-4">B)</span>
+          <input type="text" id="optB" required placeholder="Opción B" class="w-full p-2 rounded-xl border border-slate-300">
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="radio" name="modalCorr" value="C" class="text-unigreen">
+          <span class="font-bold w-4">C)</span>
+          <input type="text" id="optC" required placeholder="Opción C" class="w-full p-2 rounded-xl border border-slate-300">
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="radio" name="modalCorr" value="D" class="text-unigreen">
+          <span class="font-bold w-4">D)</span>
+          <input type="text" id="optD" required placeholder="Opción D" class="w-full p-2 rounded-xl border border-slate-300">
+        </div>
+      `;
+    } else {
+      area.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="radio" name="modalCorr" value="V" checked class="text-unigreen">
+          <span class="font-bold w-4">V)</span>
+          <input type="text" id="optA" value="Verdadero" required class="w-full p-2 rounded-xl border border-slate-300">
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="radio" name="modalCorr" value="F" class="text-unigreen">
+          <span class="font-bold w-4">F)</span>
+          <input type="text" id="optB" value="Falso" required class="w-full p-2 rounded-xl border border-slate-300">
+        </div>
+      `;
+    }
+  }
+
+  async function handleSaveQuestion(e) {
+    e.preventDefault();
+    const categoria = document.getElementById('modalCategory').value;
+    const tipo = document.getElementById('modalType').value;
+    const texto_base = document.getElementById('modalTextBase').value.trim();
+    const enunciado = document.getElementById('modalStatement').value.trim();
+    const puntaje = document.getElementById('modalPoints').value;
+    const retroalimentacion = document.getElementById('modalFeedback').value.trim();
+
+    const corrRadio = document.querySelector('input[name="modalCorr"]:checked');
+    const corrVal = corrRadio ? corrRadio.value : 'A';
+
+    let opciones = [];
+    if (tipo === 'MULTIPLE') {
+      opciones = [
+        { letra: 'A', texto: document.getElementById('optA').value, es_correcta: (corrVal === 'A'), orden: 1 },
+        { letra: 'B', texto: document.getElementById('optB').value, es_correcta: (corrVal === 'B'), orden: 2 },
+        { letra: 'C', texto: document.getElementById('optC').value, es_correcta: (corrVal === 'C'), orden: 3 },
+        { letra: 'D', texto: document.getElementById('optD').value, es_correcta: (corrVal === 'D'), orden: 4 }
+      ];
+    } else {
+      opciones = [
+        { letra: 'V', texto: document.getElementById('optA').value, es_correcta: (corrVal === 'V'), orden: 1 },
+        { letra: 'F', texto: document.getElementById('optB').value, es_correcta: (corrVal === 'F'), orden: 2 }
+      ];
+    }
+
+    try {
+      const res = await Auth.apiFetch('/api/banco/preguntas/', {
+        method: 'POST',
+        body: JSON.stringify({
+          categoria, tipo, texto_base, enunciado, puntaje, retroalimentacion, activo: true, opciones
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(JSON.stringify(data));
+
+      alert('¡Pregunta guardada exitosamente en el banco!');
+      closeQuestionModal();
+      document.getElementById('formQuestion').reset();
+      loadQuestions();
+    } catch (err) {
+      alert('Error al guardar pregunta: ' + err.message);
+    }
+  }
+</script>
+{% endblock %}

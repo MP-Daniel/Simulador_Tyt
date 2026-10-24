@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - Simulador Saber TyT UniPutumayo{% endblock %}
+
+{% block header %}
+<!-- Cabecera simplificada para Login -->
+<div class="py-4 px-6 bg-white border-b border-slate-200 flex justify-between items-center max-w-7xl mx-auto w-full">
+  <div class="flex items-center gap-3">
+    <img src="/static/img/logo_uniputumayo.png" alt="Logo UniPutumayo" class="h-10 sm:h-12 w-auto object-contain">
+  </div>
+  <a href="/vistas/" class="text-xs text-uniblue font-semibold hover:underline">
+    🗺️ Directorio de Pantallas →
+  </a>
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block mobile_toggle %}{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center p-4 py-10 bg-slate-100">
+  <div class="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+    
+    <!-- Hero del Login -->
+    <div class="bg-gradient-to-r from-uniblue to-uniblue-dark p-6 text-white text-center relative overflow-hidden">
+      <div class="relative z-10">
+        <span class="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm inline-block mb-2">
+          Seguridad JWT • Electiva III
+        </span>
+        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Acceso Seguro al Simulador</h2>
+        <p class="text-xs text-slate-200 mt-1">Plataforma de Evaluación Saber TyT - UniPutumayo</p>
+      </div>
+      <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none"></div>
+    </div>
+
+    <!-- Alerta de Error -->
+    <div id="errorAlert" class="m-6 mb-0 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2.5 hidden">
+      <span class="text-base leading-none">⚠️</span>
+      <span id="errorMessage">Credenciales incorrectas o cuenta desactivada.</span>
+    </div>
+
+    <!-- Formulario de Login -->
+    <form id="loginForm" class="p-6 sm:p-8 space-y-4" onsubmit="handleLoginSubmit(event)">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          Nombre de Usuario <span class="text-red-500">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="usernameInput" 
+          required 
+          value="admin"
+          placeholder="Ej. admin, docente o estudiante1" 
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-uniblue focus:border-transparent text-sm text-slate-800"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          Contraseña <span class="text-red-500">*</span>
+        </label>
+        <input 
+          type="password" 
+          id="passwordInput" 
+          required 
+          value="admin123"
+          placeholder="Ingresa tu contraseña" 
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-uniblue focus:border-transparent text-sm text-slate-800"
+        />
+      </div>
+
+      <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" checked class="w-4 h-4 text-uniblue rounded border-slate-300">
+          <span>Recordar sesión</span>
+        </label>
+        <span class="text-[11px] text-unigreen-dark font-semibold">● Autenticación JWT</span>
+      </div>
+
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="w-full bg-uniblue hover:bg-uniblue-dark text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 group text-sm mt-2"
+      >
+        <span id="btnText">Iniciar Sesión con JWT</span>
+        <span class="group-hover:translate-x-1 transition-transform">→</span>
+      </button>
+    </form>
+
+    <!-- Credenciales de Prueba Rápida para Sustentación -->
+    <div class="bg-slate-50 p-5 border-t border-slate-200">
+      <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
+        ⚡ Cuentas de Demostración para Sustentación
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <button onclick="fillDemo('admin', 'admin123')" class="p-2 bg-white hover:bg-uniblue/10 border border-slate-200 rounded-lg text-left transition">
+          <div class="font-bold text-uniblue">Administrador</div>
+          <div class="text-[10px] text-slate-500">admin / admin123</div>
+        </button>
+        <button onclick="fillDemo('docente', 'docente123')" class="p-2 bg-white hover:bg-amber-50 border border-slate-200 rounded-lg text-left transition">
+          <div class="font-bold text-amber-700">Docente Evaluador</div>
+          <div class="text-[10px] text-slate-500">docente / docente123</div>
+        </button>
+        <button onclick="fillDemo('estudiante1', 'estudiante123')" class="p-2 bg-white hover:bg-emerald-50 border border-slate-200 rounded-lg text-left transition">
+          <div class="font-bold text-emerald-700">Estudiante 1</div>
+          <div class="text-[10px] text-slate-500">estudiante1 / estudiante123</div>
+        </button>
+        <button onclick="fillDemo('inactivo', 'inactivo123')" class="p-2 bg-white hover:bg-red-50 border border-red-200 rounded-lg text-left transition">
+          <div class="font-bold text-red-600">Cuenta Inactiva</div>
+          <div class="text-[10px] text-slate-500">inactivo / inactivo123</div>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function fillDemo(username, password) {
+    document.getElementById('usernameInput').value = username;
+    document.getElementById('passwordInput').value = password;
+    document.getElementById('errorAlert').classList.add('hidden');
+  }
+
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const alertBox = document.getElementById('errorAlert');
+    const alertMsg = document.getElementById('errorMessage');
+
+    const username = document.getElementById('usernameInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+
+    btn.disabled = true;
+    btnText.innerText = 'Verificando con Django JWT...';
+    alertBox.classList.add('hidden');
+
+    try {
+      const data = await Auth.login(username, password);
+      btnText.innerText = '¡Acceso Correcto!';
+
+      // Redirección inteligente según el rol o permisos
+      const user = data.user;
+      if (user.is_superuser || user.rol?.nombre === 'Administrador' || user.permisos?.includes('cuestionarios.gestionar')) {
+        window.location.href = '/admin-panel/';
+      } else {
+        window.location.href = '/estudiante/';
+      }
+    } catch (err) {
+      alertMsg.innerText = err.message || 'Error al iniciar sesión.';
+      alertBox.classList.remove('hidden');
+      btn.disabled = false;
+      btnText.innerText = 'Iniciar Sesión con JWT';
+    }
+  }
+
+  // Si ya tiene sesión activa, redirigir automáticamente
+  document.addEventListener('DOMContentLoaded', () => {
+    const user = Auth.getUser();
+    if (user && Auth.getAccessToken()) {
+      if (user.is_superuser || user.rol?.nombre === 'Administrador' || user.permisos?.includes('cuestionarios.gestionar')) {
+        window.location.href = '/admin-panel/';
+      } else {
+        window.location.href = '/estudiante/';
+      }
+    }
+  });
+</script>
+{% endblock %}
