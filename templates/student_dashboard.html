@@ -15,12 +15,12 @@
         ¡Bienvenido(a), <span id="welcomeStudentName">Estudiante</span>!
       </h1>
       <p class="text-slate-200 text-xs md:text-sm mt-1 max-w-xl">
-        Ingeniería de Sistemas • Cód: <span id="welcomeStudentCode" class="font-mono text-emerald-300">SIS-2026</span>. Cuestionarios autorizados en MySQL.
+        Ingeniería de Sistemas • Cód: <span id="welcomeStudentCode" class="font-mono text-emerald-300">SIS-2026</span>. Cuestionarios autorizados para el período.
       </p>
     </div>
     <div class="flex items-center gap-2">
       <span class="text-xs bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-300 font-semibold flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sesión JWT Activa
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Sesión JWT Activa
       </span>
     </div>
   </div>
@@ -56,17 +56,17 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h2 class="text-lg md:text-xl font-bold text-slate-900">Cuestionarios Habilitados para Evaluación</h2>
-        <p class="text-xs text-slate-500">Filtrados automáticamente en Django según fechas de disponibilidad (Regla R08).</p>
+        <p class="text-xs text-slate-500">Filtrados automáticamente según fechas de disponibilidad (Regla R08).</p>
       </div>
       <button onclick="loadDashboardData()" class="text-xs text-uniblue hover:underline flex items-center gap-1">
-        <span>🔄</span> <span>Actualizar</span>
+        <span>Actualizar</span>
       </button>
     </div>
 
     <!-- Grid de Cuestionarios -->
     <div id="quizzesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="col-span-full text-center py-10 bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
-        Cargando cuestionarios disponibles desde el servidor Django...
+        Cargando cuestionarios disponibles...
       </div>
     </div>
   </div>
@@ -156,7 +156,7 @@
         if (!isEstudiante) {
           actionBtn = `
             <a href="/admin-panel/" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold py-2.5 rounded-xl transition text-xs shadow-xs flex items-center justify-center gap-2">
-              <span>🛡️ Modo Docente: Previsualizar en Panel</span> →
+              <span>Modo Docente: Previsualizar en Panel</span> →
             </a>
           `;
         } else if (puedeIniciar) {
@@ -232,7 +232,7 @@
         
         const globalStatEl = document.getElementById('statGlobalStatus');
         if (last.resultado === 'aprobado') {
-          globalStatEl.innerText = 'APROBADO ✓';
+          globalStatEl.innerText = 'APROBADO';
           globalStatEl.className = 'text-xl md:text-2xl font-black text-emerald-600 mt-2';
         } else {
           globalStatEl.innerText = 'REPROBADO';
@@ -254,7 +254,7 @@
             resBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">EN CURSO</span>';
           }
 
-          let action = `<a href="/estudiante/resultados/?intento_id=${att.id}" class="bg-uniblue/10 hover:bg-uniblue hover:text-white text-uniblue font-semibold px-2.5 py-1 rounded-lg transition text-[11px] font-sans">Ver Revisión 👁</a>`;
+          let action = `<a href="/estudiante/resultados/?intento_id=${att.id}" class="bg-uniblue/10 hover:bg-uniblue hover:text-white text-uniblue font-semibold px-2.5 py-1 rounded-lg transition text-[11px] font-sans">Ver Revisión</a>`;
 
           return `
             <tr class="hover:bg-slate-50 transition">

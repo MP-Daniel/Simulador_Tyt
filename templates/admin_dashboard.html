@@ -14,14 +14,14 @@
         <span class="text-uniblue font-semibold">Panel de Control</span>
       </div>
       <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Supervisión Académica y Cuestionarios</h1>
-      <p class="text-xs text-slate-500">Métricas en tiempo real, gestión de exámenes y auditoría de intentos en MySQL.</p>
+      <p class="text-xs text-slate-500">Métricas en tiempo real, gestión de exámenes y auditoría de intentos académicos.</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <a href="/admin-panel/cuestionarios/crear/" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
         <span>+</span> <span>Nuevo Cuestionario</span>
       </a>
       <a href="/admin-panel/importar-excel/" class="bg-uniblue hover:bg-uniblue-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-        <span>📥</span> <span>Importar Excel</span>
+        <span>Importar Excel</span>
       </a>
     </div>
   </div>
@@ -131,10 +131,10 @@
     <div class="bg-gradient-to-r from-uniblue to-[#124B62] text-white p-5 flex justify-between items-start shrink-0">
       <div>
         <div class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-200 border border-amber-300/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-2">
-          <span>🛡️</span> <span>Modo Previsualización Pedagógica (Sandbox)</span>
+          <span>Modo Previsualización Pedagógica (Sandbox)</span>
         </div>
         <h3 class="text-lg font-extrabold text-white" id="modalQuizTitle">Cargando Cuestionario...</h3>
-        <p class="text-xs text-slate-200 mt-1" id="modalQuizSub">Verificación de reactivos para Docentes y Administradores. No genera registros en base de datos.</p>
+        <p class="text-xs text-slate-200 mt-1" id="modalQuizSub">Verificación de reactivos para Docentes y Administradores. Modo de consulta sin registro de intentos.</p>
       </div>
       <button onclick="closePreviewModal()" class="text-white/80 hover:text-white p-1 rounded-lg bg-white/10 hover:bg-white/20 transition text-sm">
         ✕
@@ -144,19 +144,19 @@
     <!-- Metadatos del Examen -->
     <div class="bg-slate-50 border-b border-slate-200 px-6 py-3 flex flex-wrap gap-4 text-xs font-mono shrink-0">
       <div class="flex items-center gap-1 text-slate-600">
-        <span class="text-slate-400">⏱ Tiempo:</span>
+        <span class="text-slate-400">Tiempo:</span>
         <span class="font-bold text-slate-800" id="modalQuizTime">-- min</span>
       </div>
       <div class="flex items-center gap-1 text-slate-600">
-        <span class="text-slate-400">🎯 Escala:</span>
+        <span class="text-slate-400">Escala:</span>
         <span class="font-bold text-slate-800" id="modalQuizGrade">-- / --</span>
       </div>
       <div class="flex items-center gap-1 text-slate-600">
-        <span class="text-slate-400">📚 Total Ítems:</span>
+        <span class="text-slate-400">Total Ítems:</span>
         <span class="font-bold text-emerald-700" id="modalQuizTotal">-- reactivos</span>
       </div>
       <div class="ml-auto flex items-center gap-1 text-[11px] text-emerald-600 font-sans font-semibold">
-        <span>✓ Claves y justificaciones habilitadas</span>
+        <span>Claves y justificaciones habilitadas</span>
       </div>
     </div>
 
@@ -210,16 +210,19 @@
           const fA = new Date(q.fecha_apertura).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
           const fC = new Date(q.fecha_cierre).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 
-          let badgeEstado = '';
-          if (q.estado === 'disponible') {
-            badgeEstado = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full text-[10px]">DISPONIBLE</span>';
-          } else if (q.estado === 'programado') {
-            badgeEstado = '<span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full text-[10px]">PROGRAMADO</span>';
-          } else if (q.estado === 'cerrado') {
-            badgeEstado = '<span class="bg-slate-100 text-slate-600 font-bold px-2.5 py-0.5 rounded-full text-[10px]">CERRADO</span>';
-          } else {
-            badgeEstado = '<span class="bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full text-[10px]">BORRADOR</span>';
-          }
+          const estadoSelect = `
+            <select onchange="cambiarEstadoCuestionario(${q.id}, this.value)" title="Cambiar estado del cuestionario" class="text-[11px] font-bold py-1 px-2.5 rounded-xl border cursor-pointer outline-none transition font-sans shadow-2xs ${
+              q.estado === 'disponible' ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' :
+              q.estado === 'programado' ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100' :
+              q.estado === 'cerrado' ? 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200' :
+              'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100'
+            }">
+              <option value="disponible" ${q.estado === 'disponible' ? 'selected' : ''}>DISPONIBLE</option>
+              <option value="borrador" ${q.estado === 'borrador' ? 'selected' : ''}>BORRADOR</option>
+              <option value="programado" ${q.estado === 'programado' ? 'selected' : ''}>PROGRAMADO</option>
+              <option value="cerrado" ${q.estado === 'cerrado' ? 'selected' : ''}>CERRADO</option>
+            </select>
+          `;
 
           return `
             <tr class="hover:bg-slate-50 transition">
@@ -231,11 +234,11 @@
               <td class="py-3 px-4 font-mono">${q.tiempo_limite_minutos} min</td>
               <td class="py-3 px-4 font-mono">${q.intentos_permitidos} max</td>
               <td class="py-3 px-4 font-mono font-bold">${parseFloat(q.calificacion_aprobacion).toFixed(2)} / ${parseFloat(q.calificacion_maxima).toFixed(2)}</td>
-              <td class="py-3 px-4">${badgeEstado}</td>
+              <td class="py-3 px-4">${estadoSelect}</td>
               <td class="py-3 px-4 text-center">
                 <div class="flex items-center justify-center gap-1.5 font-sans">
                   <button onclick="openPreviewModal(${q.id})" class="text-[11px] text-uniblue font-bold hover:bg-sky-100 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200 transition" title="Previsualizar preguntas y claves sin registrar intento">
-                    👁️ Previsualizar
+                    Previsualizar
                   </button>
                   <button onclick="toggleQuizActive(${q.id})" class="text-[11px] font-semibold px-2 py-1 rounded-lg ${q.activo ? 'text-red-600 hover:bg-red-50' : 'text-emerald-700 hover:bg-emerald-50'} transition">
                     ${q.activo ? 'Desactivar' : 'Activar'}
@@ -316,6 +319,23 @@
     }
   }
 
+  async function cambiarEstadoCuestionario(id, nuevoEstado) {
+    try {
+      const res = await Auth.apiFetch(`/api/cuestionarios/cuestionarios/${id}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ estado: nuevoEstado })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || JSON.stringify(err));
+      }
+      loadAdminDashboard();
+    } catch (e) {
+      alert('Error al actualizar estado del cuestionario: ' + e.message);
+      loadAdminDashboard();
+    }
+  }
+
   // PREVISUALIZACIÓN SANDBOX DE CUESTIONARIOS (Docente / Administrador)
   async function openPreviewModal(quizId) {
     const modal = document.getElementById('previewModal');
@@ -356,7 +376,7 @@
             ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-medium'
             : 'bg-white border-slate-200 text-slate-700';
           const badgeCorrect = isCorrect
-            ? '<span class="ml-auto text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">✓ Clave Correcta</span>'
+            ? '<span class="ml-auto text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">Clave Correcta</span>'
             : '';
 
           return `
@@ -400,7 +420,7 @@
 
             <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs text-amber-900 space-y-1">
               <div class="font-bold flex items-center gap-1.5 text-amber-800 text-[11px]">
-                <span>💡</span> <span>Explicación / Retroalimentación Pedagógica UniPutumayo:</span>
+                <span>Explicación / Retroalimentación Pedagógica UniPutumayo:</span>
               </div>
               <p class="leading-relaxed text-slate-700">${p.retroalimentacion}</p>
             </div>
@@ -411,7 +431,7 @@
     } catch (e) {
       content.innerHTML = `
         <div class="p-4 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700">
-          ⚠️ ${e.message}
+          ${e.message}
         </div>
       `;
     }

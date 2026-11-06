@@ -22,10 +22,10 @@
       <!-- Selector de Pestañas -->
       <div class="flex bg-slate-200/80 p-1 rounded-2xl text-xs font-bold">
         <button id="tabUsersBtn" onclick="switchTab('users')" class="px-4 py-2 rounded-xl bg-white text-uniblue shadow-sm transition">
-          👤 Usuarios (<span id="countUsersBadge">0</span>)
+          Usuarios (<span id="countUsersBadge">0</span>)
         </button>
         <button id="tabRolesBtn" onclick="switchTab('roles')" class="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
-          🛡️ Roles y Permisos (<span id="countRolesBadge">0</span>)
+          Roles y Permisos (<span id="countRolesBadge">0</span>)
         </button>
       </div>
     </div>
@@ -319,7 +319,7 @@
           <div>
             <div class="flex justify-between items-start gap-2 mb-2">
               <span class="text-xs font-bold ${isPredet ? 'text-uniblue' : 'text-amber-700'} uppercase tracking-wider">
-                ${isPredet ? '★ Rol Predeterminado' : '⚙️ Rol Personalizado'}
+                ${isPredet ? 'Rol Predeterminado' : 'Rol Personalizado'}
               </span>
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${r.activo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
                 ${r.activo ? 'Activo' : 'Inactivo'}
@@ -335,20 +335,25 @@
               <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
                 ${permisos.map(p => `
                   <span class="bg-slate-100 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded-md" title="${p.descripcion || p.codigo}">
-                    ✓ ${p.nombre}
+                    ${p.nombre}
                   </span>
                 `).join('')}
               </div>
             </div>
           </div>
 
-          <div class="border-t border-slate-100 pt-3 flex justify-between items-center text-xs">
+          <div class="border-t border-slate-100 pt-3 flex flex-wrap gap-2 justify-between items-center text-xs">
             <span class="text-slate-400 text-[11px]">${r.usuarios_count || 0} usuarios asociados</span>
-            ${!isPredet || r.nombre !== 'Administrador' ? `
-              <button onclick="toggleRoleActive(${r.id})" class="text-[11px] font-semibold text-slate-600 hover:text-red-600">
-                ${r.activo ? 'Desactivar Rol' : 'Activar Rol'}
+            <div class="flex items-center gap-2">
+              <button onclick="openCreateUserModalForRole(${r.id}, '${r.nombre.replace(/'/g, "\\'")}')" class="bg-uniblue/10 hover:bg-uniblue hover:text-white text-uniblue font-semibold px-2.5 py-1 rounded-lg transition text-[11px] flex items-center gap-1" title="Crear una cuenta de usuario con este rol para iniciar sesión">
+                <span>Crear Usuario con este Rol</span>
               </button>
-            ` : '<span class="text-[10px] text-slate-400">Protegido</span>'}
+              ${!isPredet || r.nombre !== 'Administrador' ? `
+                <button onclick="toggleRoleActive(${r.id})" class="text-[11px] font-semibold text-slate-500 hover:text-red-600 px-1 py-1">
+                  ${r.activo ? 'Desactivar' : 'Activar'}
+                </button>
+              ` : '<span class="text-[10px] text-slate-400">Protegido</span>'}
+            </div>
           </div>
         </div>
       `;
@@ -423,6 +428,23 @@
     document.getElementById('modalUser').classList.add('hidden');
   }
 
+  function openCreateUserModalForRole(roleId, roleName) {
+    switchTab('users');
+    openCreateUserModal();
+    const sel = document.getElementById('newUserRole');
+    if (sel) {
+      sel.value = roleId;
+    }
+    const cleanRole = roleName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
+    const rand = Math.floor(10 + Math.random() * 90);
+    document.getElementById('newUsername').value = `${cleanRole}_${rand}`;
+    document.getElementById('newFirstName').value = 'Usuario';
+    document.getElementById('newLastName').value = roleName;
+    document.getElementById('newStudentCode').value = `COD-${Math.floor(1000 + Math.random() * 9000)}`;
+    document.getElementById('newEmail').value = `${cleanRole}${rand}@uniputumayo.edu.co`;
+    document.getElementById('newPassword').value = 'clave123';
+  }
+
   function openCreateRoleModal() {
     document.getElementById('modalRole').classList.remove('hidden');
   }
@@ -435,9 +457,11 @@
     const username = document.getElementById('newUsername').value.trim();
     const first_name = document.getElementById('newFirstName').value.trim();
     const last_name = document.getElementById('newLastName').value.trim();
-    const codigo_estudiantil = document.getElementById('newStudentCode').value.trim();
+    const rawCode = document.getElementById('newStudentCode').value.trim();
+    const codigo_estudiantil = rawCode ? rawCode : null;
     const email = document.getElementById('newEmail').value.trim();
-    const rol_id = document.getElementById('newUserRole').value;
+    const rolVal = document.getElementById('newUserRole').value;
+    const rol_id = rolVal ? parseInt(rolVal) : null;
     const password = document.getElementById('newPassword').value;
 
     try {
@@ -450,16 +474,25 @@
 
       const data = await res.json();
       if (!res.ok) {
-        const msg = JSON.stringify(data);
-        throw new Error(msg);
+        let msg = '';
+        if (typeof data === 'object') {
+          for (const [k, v] of Object.entries(data)) {
+            msg += `• ${k}: ${Array.isArray(v) ? v.join(', ') : v}\n`;
+          }
+        } else {
+          msg = String(data);
+        }
+        throw new Error(msg || 'Error al guardar usuario.');
       }
 
-      alert('¡Usuario creado exitosamente!');
+      const rolNombre = data.rol_detalle ? data.rol_detalle.nombre : 'Usuario';
+      alert(`Usuario guardado exitosamente.\n\nSe creó la cuenta con los siguientes datos:\n• Nombre de Usuario: ${username}\n• Rol Asignado: ${rolNombre}\n• Contraseña: ${password}\n\nPuedes iniciar sesión con estas credenciales.`);
       closeUserModal();
       document.getElementById('formNewUser').reset();
       loadUsers();
+      loadRoles();
     } catch (err) {
-      alert('Error al crear usuario: ' + err.message);
+      alert('Error al registrar usuario:\n' + err.message);
     }
   }
 
@@ -479,14 +512,27 @@
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(JSON.stringify(data));
+      if (!res.ok) {
+        let msg = '';
+        if (typeof data === 'object') {
+          for (const [k, v] of Object.entries(data)) {
+            msg += `• ${k}: ${Array.isArray(v) ? v.join(', ') : v}\n`;
+          }
+        } else {
+          msg = String(data);
+        }
+        throw new Error(msg || 'Error al guardar rol.');
+      }
 
-      alert(`¡Rol configurable "${nombre}" creado con éxito con ${permisos_ids.length} permisos!`);
       closeRoleModal();
       document.getElementById('formNewRole').reset();
-      loadRoles();
+      await loadRoles();
+
+      if (confirm(`Rol configurable "${nombre}" guardado exitosamente.\n\nTiene ${permisos_ids.length} permisos asignados.\n\n¿Deseas registrar un nuevo usuario con este rol ahora mismo?`)) {
+        openCreateUserModalForRole(data.id, nombre);
+      }
     } catch (err) {
-      alert('Error al crear rol: ' + err.message);
+      alert('Error al crear rol:\n' + err.message);
     }
   }
 </script>

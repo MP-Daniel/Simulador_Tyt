@@ -98,7 +98,7 @@
         </button>
 
         <button id="flagBtn" onclick="toggleFlag()" class="border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5">
-          <span>⚑</span> <span id="flagText">Marcar para revisar</span>
+          <span id="flagText">Marcar para revisar</span>
         </button>
 
         <button id="nextBtn" onclick="nextQuestion()" class="bg-uniblue hover:bg-uniblue-dark text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-sm">
@@ -136,7 +136,7 @@
       </div>
 
       <button onclick="openFinishModal()" class="w-full bg-unigreen hover:bg-unigreen-dark text-white font-bold py-3 rounded-xl text-xs transition shadow-sm mt-3 flex items-center justify-center gap-1.5">
-        <span>Finalizar y Enviar Intento</span> ✓
+        <span>Finalizar y Enviar Intento</span>
       </button>
     </div>
 
@@ -148,14 +148,14 @@
 <div id="finishModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
   <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
     <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-xl font-bold">
-      ⚠️
+      !
     </div>
     <h3 class="font-bold text-lg text-slate-900">¿Deseas finalizar el examen?</h3>
     <p id="modalSummaryText" class="text-xs text-slate-600">
       Verificando respuestas...
     </p>
     <div class="bg-slate-50 p-3 rounded-xl text-[11px] text-slate-500 text-left">
-      ℹ️ Las preguntas no contestadas quedarán guardadas como omitidas con puntaje 0.00 (Regla R09).
+      Las preguntas no contestadas quedarán guardadas como omitidas con puntaje 0.00 (Regla R09).
     </div>
     <div class="flex gap-2 pt-2">
       <button onclick="closeFinishModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
@@ -224,7 +224,6 @@
     } catch (err) {
       document.getElementById('loadingBox').innerHTML = `
         <div class="p-6 max-w-md mx-auto text-center space-y-4">
-          <div class="text-3xl">🚫</div>
           <h3 class="font-bold text-lg text-red-600">No se puede iniciar el examen</h3>
           <p class="text-xs text-slate-600">${err.message}</p>
           <a href="/estudiante/" class="inline-block bg-uniblue text-white font-bold px-4 py-2 rounded-xl text-xs">
@@ -315,7 +314,7 @@
 
     // Estado de bandera
     const isFlagged = !!studentFlags[q.id];
-    document.getElementById('flagText').innerText = isFlagged ? 'Marcada para revisar ✓' : 'Marcar para revisar';
+    document.getElementById('flagText').innerText = isFlagged ? 'Marcada para revisar' : 'Marcar para revisar';
 
     renderNavigationGrid();
   }

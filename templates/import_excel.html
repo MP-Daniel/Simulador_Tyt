@@ -20,40 +20,38 @@
         <span class="text-uniblue font-semibold">Importador Excel</span>
       </div>
       <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Módulo de Importación Masiva desde Excel</h1>
-      <p class="text-xs text-slate-500">Valida reactivos fila por fila antes de guardar en MySQL (Sec 2.3 y Regla R10).</p>
+      <p class="text-xs text-slate-500">Valida reactivos fila por fila antes de guardar en el banco (Sec 2.3 y Regla R10).</p>
     </div>
     <a href="/admin-panel/preguntas/" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition">
       ← Ir al Banco de Preguntas
     </a>
+    <a href="/api/banco/descargar-plantilla/" download="plantilla_oficial_preguntas_saber_tyt.xlsx" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span>Descargar Plantilla Oficial (.xlsx)</span>
+    </a>
   </div>
-      <div class="flex gap-2">
-        <a href="/api/banco/descargar-plantilla/" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
-          <span>📥</span> <span>Descargar Plantilla Oficial (.xlsx)</span>
-        </a>
-      </div>
+
+  <!-- Zona de Carga Drag & Drop -->
+  <div class="bg-white rounded-3xl border-2 border-dashed border-uniblue/40 p-8 text-center space-y-4 hover:border-uniblue transition bg-blue-50/20" id="dropZone">
+    <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-sm">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    </div>
+    <div>
+      <h2 class="text-base font-bold text-slate-900">Selecciona o arrastra el archivo de reactivos</h2>
+      <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+        Soporta formatos <span class="font-bold text-slate-700">.xlsx</span> y <span class="font-bold text-slate-700">.csv</span> basados en la plantilla oficial de Saber TyT.
+      </p>
     </div>
 
-    <!-- Zona de Carga Drag & Drop -->
-    <div class="bg-white rounded-3xl border-2 border-dashed border-uniblue/40 p-8 text-center space-y-4 hover:border-uniblue transition bg-blue-50/20" id="dropZone">
-      <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl mx-auto shadow-sm">
-        📊
-      </div>
-      <div>
-        <h2 class="text-base font-bold text-slate-900">Selecciona o arrastra el archivo de reactivos</h2>
-        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-          Soporta formatos <span class="font-bold text-slate-700">.xlsx</span> y <span class="font-bold text-slate-700">.csv</span> basados en la plantilla oficial de Saber TyT.
-        </p>
-      </div>
-
-      <div class="flex flex-wrap justify-center items-center gap-3 pt-2">
-        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event)">
-        <button onclick="document.getElementById('excelFileInput').click()" class="bg-uniblue hover:bg-uniblue-dark text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow transition">
-          Examinar Archivo en mi PC
-        </button>
-        <button onclick="loadSampleDemoData()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2.5 rounded-xl text-xs transition border border-amber-300">
-          ⚡ Cargar Datos Demo con Regla R10
-        </button>
-      </div>
+    <div class="flex flex-wrap justify-center items-center gap-3 pt-2">
+      <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event)">
+      <button onclick="document.getElementById('excelFileInput').click()" class="bg-uniblue hover:bg-uniblue-dark text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow transition">
+        Examinar Archivo en mi PC
+      </button>
+      <button onclick="loadSampleDemoData()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2.5 rounded-xl text-xs transition border border-amber-300">
+        Cargar Datos Demo con Regla R10
+      </button>
+    </div>
 
       <!-- Cuestionario de destino opcional -->
       <div class="pt-4 border-t border-slate-200/60 max-w-md mx-auto flex items-center justify-center gap-2 text-xs">
@@ -123,14 +121,14 @@
         <!-- Barra de Acciones Final -->
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div class="text-xs text-slate-600">
-            Solo se guardarán en MySQL las preguntas marcadas como <span class="font-bold text-emerald-600">VÁLIDA</span> (Regla R10).
+            Solo se guardarán en el banco las preguntas marcadas como <span class="font-bold text-emerald-600">VÁLIDA</span> (Regla R10).
           </div>
           <div class="flex gap-2">
             <button onclick="resetImport()" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-300 transition">
               Limpiar
             </button>
             <button id="confirmImportBtn" onclick="confirmImport()" class="px-5 py-2 rounded-xl bg-unigreen hover:bg-unigreen-dark text-white font-bold text-xs shadow transition flex items-center gap-1.5">
-              <span>Confirmar e Importar al Banco</span> ✓
+              <span>Confirmar e Importar al Banco</span>
             </button>
           </div>
         </div>
@@ -347,7 +345,7 @@
     const targetQuizId = document.getElementById('targetQuiz').value;
     const confirmBtn = document.getElementById('confirmImportBtn');
     confirmBtn.disabled = true;
-    confirmBtn.innerText = 'Guardando en MySQL...';
+    confirmBtn.innerText = 'Guardando preguntas...';
 
     try {
       let res;
@@ -370,13 +368,13 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error en importación.');
 
-      alert(`¡Éxito! Se han importado ${data.resumen?.validas || validRows.length} preguntas válidas al banco central en MySQL.\n(Las filas con error fueron descartadas sin alterar la base de datos según la Regla R10).`);
+      alert(`¡Éxito! Se han importado ${data.resumen?.validas || validRows.length} preguntas válidas al banco central.\n(Las filas con error fueron descartadas sin alterar el banco según la Regla R10).`);
       window.location.href = '/admin-panel/preguntas/';
 
     } catch (e) {
       alert('Error al importar: ' + e.message);
       confirmBtn.disabled = false;
-      confirmBtn.innerText = 'Confirmar e Importar al Banco ✓';
+      confirmBtn.innerText = 'Confirmar e Importar al Banco';
     }
   }
 
