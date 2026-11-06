@@ -255,6 +255,15 @@
       return;
     }
 
+    const confirmed = await AppDialog.confirm({
+      title: '¿Confirmar Creación de Cuestionario?',
+      message: `¿Deseas guardar el cuestionario <b>${nombre}</b> con <b>${preguntas_ids.length}</b> reactivos seleccionados y estado inicial <b>${estado.toUpperCase()}</b>?`,
+      confirmText: 'Sí, Guardar',
+      cancelText: 'Revisar',
+      type: 'info'
+    });
+    if (!confirmed) return;
+
     const btn = document.getElementById('submitQuizBtn');
     btn.disabled = true;
     btn.innerText = 'Guardando cuestionario...';

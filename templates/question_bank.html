@@ -331,6 +331,15 @@
       ];
     }
 
+    const confirmed = await AppDialog.confirm({
+      title: '¿Guardar Pregunta en el Banco?',
+      message: `¿Deseas registrar este nuevo reactivo de <b>${categoria}</b> en el banco central de preguntas?`,
+      confirmText: 'Guardar Pregunta',
+      cancelText: 'Revisar',
+      type: 'info'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch('/api/banco/preguntas/', {
         method: 'POST',
