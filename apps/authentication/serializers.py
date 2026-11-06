@@ -133,6 +133,11 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'date_joined', 'last_login'
         ]
 
+    def validate_codigo_estudiantil(self, value):
+        if not value or not str(value).strip():
+            return None
+        return value.strip()
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         user = Usuario(**validated_data)
