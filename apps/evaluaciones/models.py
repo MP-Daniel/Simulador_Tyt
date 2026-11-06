@@ -2,10 +2,84 @@ from django.db import models
 from decimal import Decimal
 
 
+class PeriodoAcademico(models.Model):
+    """
+    Período académico semestral o anual (ej. 2026-1, 2026-2).
+    Sustenta el primer y segundo nivel de filtros jerárquicos de reportes.
+    """
+    anio = models.PositiveIntegerField(help_text="Año lectivo, ej. 2025, 2026")
+    nombre = models.CharField(max_length=20, help_text="Código del período, ej. 2026-1")
+    activo = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'periodos_academicos'
+        verbose_name = 'Período Académico'
+        verbose_name_plural = 'Períodos Académicos'
+        ordering = ['-anio', 'nombre']
+        unique_together = [['anio', 'nombre']]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.anio})"
+
+
+class Curso(models.Model):
+    """
+    Curso o grupo académico asociado a un período (ej. Sexto A, Sexto B).
+    Sustenta el tercer nivel de filtros jerárquicos de reportes.
+    """
+    nombre = models.CharField(max_length=100, help_text="Nombre del grupo, ej. Sexto A")
+    codigo = models.CharField(max_length=50, blank=True, help_text="Código del curso, ej. SIS-6A")
+    periodo = models.ForeignKey(
+        PeriodoAcademico,
+        on_delete=models.CASCADE,
+        related_name='cursos',
+        help_text="Período académico al que pertenece el curso"
+    )
+    programa = models.CharField(max_length=150, default='Ingeniería de Sistemas')
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'cursos'
+        verbose_name = 'Curso / Grupo'
+        verbose_name_plural = 'Cursos / Grupos'
+        ordering = ['periodo', 'nombre']
+
+    def __str__(self):
+        return f"{self.nombre} - {self.periodo.nombre}"
+
+
+class Matricula(models.Model):
+    """
+    Pertenencia o matrícula de un estudiante a un curso o grupo académico.
+    Sustenta el quinto nivel de filtros jerárquicos de reportes (estudiantes del curso).
+    """
+    estudiante = models.ForeignKey(
+        'authentication.Usuario',
+        on_delete=models.CASCADE,
+        related_name='matriculas'
+    )
+    curso = models.ForeignKey(
+        Curso,
+        on_delete=models.CASCADE,
+        related_name='matriculas'
+    )
+    fecha_matricula = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'matriculas'
+        verbose_name = 'Matrícula'
+        verbose_name_plural = 'Matrículas'
+        unique_together = [['estudiante', 'curso']]
+
+    def __str__(self):
+        return f"{self.estudiante.username} matriculado en {self.curso.nombre}"
+
+
 class Intento(models.Model):
     """
     Registro inmutable de un intento de presentación de cuestionario (Sec 2.5).
-    Conserva estudiante, cuestionario, fechas, tiempos, puntajes y calificación final en DECIMAL(5,2).
+    Conserva estudiante, cuestionario, curso, fechas, tiempos, puntajes y calificación final en DECIMAL(5,2).
     """
     ESTADO_INTENTO_CHOICES = [
         ('en_progreso', 'En progreso'),
@@ -28,6 +102,14 @@ class Intento(models.Model):
         'authentication.Usuario',
         on_delete=models.CASCADE,
         related_name='intentos'
+    )
+    curso = models.ForeignKey(
+        Curso,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='intentos',
+        help_text="Curso o grupo en el cual se presentó el simulacro"
     )
     numero_intento = models.PositiveIntegerField(default=1)
     fecha_inicio = models.DateTimeField(auto_now_add=True)

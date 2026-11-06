@@ -69,9 +69,13 @@ class IniciarIntentoView(APIView):
             intento = intento_existente
         else:
             intentos_previos = Intento.objects.filter(cuestionario=cuestionario, estudiante=user).count()
+            matricula = user.matriculas.select_related('curso').first() if hasattr(user, 'matriculas') else None
+            curso_estudiante = matricula.curso if matricula else None
+
             intento = Intento.objects.create(
                 cuestionario=cuestionario,
                 estudiante=user,
+                curso=curso_estudiante,
                 numero_intento=intentos_previos + 1,
                 estado_intento='en_progreso',
                 puntaje_total_posible=cuestionario.puntaje_total_posible,
