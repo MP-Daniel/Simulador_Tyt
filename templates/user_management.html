@@ -281,13 +281,22 @@
   }
 
   async function toggleUserActive(userId) {
+    const confirmed = await AppDialog.confirm({
+      title: 'Modificar Estado de Cuenta',
+      message: '¿Estás seguro de que deseas cambiar el estado activo de este usuario?',
+      confirmText: 'Sí, cambiar estado',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/auth/usuarios/${userId}/toggle-active/`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error al cambiar estado.');
+      AppDialog.toast('Estado de cuenta actualizado correctamente.', 'success');
       loadUsers();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -361,13 +370,22 @@
   }
 
   async function toggleRoleActive(roleId) {
+    const confirmed = await AppDialog.confirm({
+      title: 'Modificar Estado de Rol',
+      message: '¿Estás seguro de que deseas cambiar el estado activo de este rol en el sistema?',
+      confirmText: 'Sí, cambiar estado',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/auth/roles/${roleId}/toggle-active/`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error al cambiar estado.');
+      AppDialog.toast('Estado del rol actualizado correctamente.', 'success');
       loadRoles();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -486,13 +504,36 @@
       }
 
       const rolNombre = data.rol_detalle ? data.rol_detalle.nombre : 'Usuario';
-      alert(`Usuario guardado exitosamente.\n\nSe creó la cuenta con los siguientes datos:\n• Nombre de Usuario: ${username}\n• Rol Asignado: ${rolNombre}\n• Contraseña: ${password}\n\nPuedes iniciar sesión con estas credenciales.`);
       closeUserModal();
       document.getElementById('formNewUser').reset();
       loadUsers();
       loadRoles();
+
+      await AppDialog.alert({
+        title: 'Usuario Registrado Exitosamente',
+        message: `
+          <div class="space-y-3 text-xs">
+            <p class="text-slate-600">Se creó la cuenta en el sistema con los siguientes datos:</p>
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 font-mono space-y-1.5">
+              <div><span class="text-slate-400">Usuario:</span> <b class="text-slate-900">${username}</b></div>
+              <div><span class="text-slate-400">Documento / Cédula:</span> <b class="text-slate-900">${codigo_estudiantil || '(No asignado)'}</b></div>
+              <div><span class="text-slate-400">Rol Asignado:</span> <b class="text-uniblue">${rolNombre}</b></div>
+              <div><span class="text-slate-400">Contraseña:</span> <b class="text-slate-900">${password}</b></div>
+            </div>
+            <p class="text-[11px] text-emerald-800 font-medium bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+              El usuario ya puede iniciar sesión en la plataforma ingresando tanto su <b>Nombre de Usuario</b> como su <b>Cédula o Documento</b>.
+            </p>
+          </div>
+        `,
+        type: 'success',
+        buttonText: 'Aceptar'
+      });
     } catch (err) {
-      alert('Error al registrar usuario:\n' + err.message);
+      AppDialog.alert({
+        title: 'Error al Registrar Usuario',
+        message: err.message,
+        type: 'error'
+      });
     }
   }
 
@@ -528,11 +569,23 @@
       document.getElementById('formNewRole').reset();
       await loadRoles();
 
-      if (confirm(`Rol configurable "${nombre}" guardado exitosamente.\n\nTiene ${permisos_ids.length} permisos asignados.\n\n¿Deseas registrar un nuevo usuario con este rol ahora mismo?`)) {
+      const wantCreateUser = await AppDialog.confirm({
+        title: 'Rol Guardado Exitosamente',
+        message: `El rol configurable <b>"${nombre}"</b> fue registrado con <b>${permisos_ids.length}</b> permisos autorizados.<br><br>¿Deseas registrar un nuevo usuario con este rol ahora mismo?`,
+        confirmText: 'Registrar Usuario',
+        cancelText: 'Cerrar',
+        type: 'success'
+      });
+
+      if (wantCreateUser) {
         openCreateUserModalForRole(data.id, nombre);
       }
     } catch (err) {
-      alert('Error al crear rol:\n' + err.message);
+      AppDialog.alert({
+        title: 'Error al Crear Rol',
+        message: err.message,
+        type: 'error'
+      });
     }
   }
 </script>

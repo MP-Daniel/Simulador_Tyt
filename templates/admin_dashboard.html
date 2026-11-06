@@ -309,13 +309,21 @@
   }
 
   async function toggleQuizActive(id) {
-    if (!confirm('¿Deseas cambiar el estado activo de este cuestionario?')) return;
+    const confirmed = await AppDialog.confirm({
+      title: 'Modificar Estado del Cuestionario',
+      message: '¿Deseas cambiar el estado activo de este cuestionario?',
+      confirmText: 'Sí, cambiar',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/cuestionarios/cuestionarios/${id}/toggle-active/`, { method: 'POST' });
       if (!res.ok) throw new Error('Error al modificar cuestionario.');
+      AppDialog.toast('Estado del cuestionario modificado con éxito.', 'success');
       loadAdminDashboard();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -329,9 +337,10 @@
         const err = await res.json();
         throw new Error(err.detail || JSON.stringify(err));
       }
+      AppDialog.toast(`Cuestionario actualizado a estado ${nuevoEstado.toUpperCase()}.`, 'success');
       loadAdminDashboard();
     } catch (e) {
-      alert('Error al actualizar estado del cuestionario: ' + e.message);
+      AppDialog.alert({ title: 'Error al Actualizar Estado', message: e.message, type: 'error' });
       loadAdminDashboard();
     }
   }

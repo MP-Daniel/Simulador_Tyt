@@ -816,9 +816,17 @@
 
       if (!response.ok) {
         if (response.status === 403) {
-          alert('Acceso denegado: Se requiere permiso administrativo para descargar reportes.');
+          AppDialog.alert({
+            title: 'Acceso Denegado',
+            message: 'Se requiere permiso administrativo para descargar reportes institucionales.',
+            type: 'danger'
+          });
         } else {
-          alert('No se pudo generar el reporte Excel.');
+          AppDialog.alert({
+            title: 'Error en Exportación',
+            message: 'No se pudo generar el reporte Excel en el servidor.',
+            type: 'error'
+          });
         }
         return;
       }
@@ -840,10 +848,15 @@
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
+      AppDialog.toast(`Descargando ${filename}...`, 'info');
 
     } catch (e) {
       console.error('Error descargando Excel:', e);
-      alert('Error de conexión al exportar el archivo Excel.');
+      AppDialog.alert({
+        title: 'Error de Red',
+        message: 'Error de conexión al exportar el archivo Excel.',
+        type: 'error'
+      });
     }
   }
 </script>

@@ -179,7 +179,11 @@
 
         validateAndRender(json);
       } catch (err) {
-        alert("Error al leer el archivo Excel: " + err.message);
+        AppDialog.alert({
+          title: 'Error de Lectura',
+          message: 'Error al procesar el archivo Excel: ' + err.message,
+          type: 'error'
+        });
       }
     };
 
@@ -338,9 +342,23 @@
   async function confirmImport() {
     const validRows = parsedRows.filter(r => r.status === 'VALID');
     if (validRows.length === 0) {
-      alert("No hay preguntas válidas para importar.");
+      AppDialog.alert({
+        title: 'Sin Reactivos Válidos',
+        message: 'No hay preguntas marcadas como válidas para importar en este archivo.',
+        type: 'warning'
+      });
       return;
     }
+
+    const confirmed = await AppDialog.confirm({
+      title: 'Confirmar Importación Masiva',
+      message: `Se van a importar <b>${validRows.length}</b> preguntas válidas al Banco Central Saber TyT.<br><br>` +
+        `<span class="text-slate-500">Las filas marcadas con error o advertencia serán descartadas sin alterar el banco (Regla R10). ¿Deseas proceder?</span>`,
+      confirmText: 'Sí, importar al banco',
+      cancelText: 'Cancelar',
+      type: 'success'
+    });
+    if (!confirmed) return;
 
     const targetQuizId = document.getElementById('targetQuiz').value;
     const confirmBtn = document.getElementById('confirmImportBtn');
@@ -368,11 +386,21 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error en importación.');
 
-      alert(`¡Éxito! Se han importado ${data.resumen?.validas || validRows.length} preguntas válidas al banco central.\n(Las filas con error fueron descartadas sin alterar el banco según la Regla R10).`);
+      await AppDialog.alert({
+        title: 'Importación Completada',
+        message: `Se han importado exitosamente <b>${data.resumen?.validas || validRows.length}</b> preguntas al banco central.<br><br>` +
+          `<span class="text-slate-500">Los reactivos ya se encuentran disponibles para crear o configurar cuestionarios.</span>`,
+        type: 'success',
+        buttonText: 'Ir al Banco de Preguntas'
+      });
       window.location.href = '/admin-panel/preguntas/';
 
     } catch (e) {
-      alert('Error al importar: ' + e.message);
+      AppDialog.alert({
+        title: 'Error al Importar',
+        message: e.message,
+        type: 'error'
+      });
       confirmBtn.disabled = false;
       confirmBtn.innerText = 'Confirmar e Importar al Banco';
     }

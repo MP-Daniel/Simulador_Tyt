@@ -233,12 +233,22 @@
   }
 
   async function toggleQuestionActive(id) {
+    const confirmed = await AppDialog.confirm({
+      title: '¿Cambiar Estado de la Pregunta?',
+      message: '¿Deseas activar o desactivar la disponibilidad de esta pregunta en los cuestionarios?',
+      confirmText: 'Sí, cambiar',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/banco/preguntas/${id}/toggle-active/`, { method: 'POST' });
       if (!res.ok) throw new Error('Error al cambiar estado.');
+      AppDialog.toast('Estado de la pregunta actualizado', 'success');
       loadQuestions();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -332,12 +342,16 @@
       const data = await res.json();
       if (!res.ok) throw new Error(JSON.stringify(data));
 
-      alert('¡Pregunta guardada exitosamente en el banco!');
+      AppDialog.toast('Pregunta guardada exitosamente en el banco central', 'success');
       closeQuestionModal();
       document.getElementById('formQuestion').reset();
       loadQuestions();
     } catch (err) {
-      alert('Error al guardar pregunta: ' + err.message);
+      AppDialog.alert({
+        title: 'Error al Guardar Pregunta',
+        message: 'No se pudo guardar la pregunta: ' + err.message,
+        type: 'error'
+      });
     }
   }
 </script>

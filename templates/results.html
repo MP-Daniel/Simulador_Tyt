@@ -104,7 +104,11 @@
     const intentoId = urlParams.get('intento_id') || urlParams.get('intento');
 
     if (!intentoId) {
-      alert('No se especificó un intento válido.');
+      await AppDialog.alert({
+        title: 'Intento No Válido',
+        message: 'No se especificó un intento válido para consultar resultados.',
+        type: 'warning'
+      });
       window.location.href = '/estudiante/';
       return;
     }

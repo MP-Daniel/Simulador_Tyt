@@ -225,13 +225,21 @@
     const dOpen = new Date(fecha_apertura);
     const dClose = new Date(fecha_cierre);
     if (dClose <= dOpen) {
-      alert('Regla R01 violada: La fecha de cierre debe ser posterior a la fecha de apertura.');
+      AppDialog.alert({
+        title: 'Validación de Fechas (Regla R01)',
+        message: 'La fecha de cierre debe ser estrictamente posterior a la fecha de apertura.',
+        type: 'warning'
+      });
       return;
     }
 
     // Validación Regla R03
     if (calificacion_aprobacion > calificacion_maxima) {
-      alert('Regla R03 violada: La nota de aprobación no puede superar la nota máxima.');
+      AppDialog.alert({
+        title: 'Validación de Escala (Regla R03)',
+        message: 'La nota de aprobación no puede superar la calificación máxima establecida.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -239,7 +247,11 @@
     const preguntas_ids = Array.from(checked).map(cb => parseInt(cb.value));
 
     if (preguntas_ids.length === 0) {
-      alert('Debes seleccionar al menos una pregunta para conformar el cuestionario.');
+      AppDialog.alert({
+        title: 'Reactivos Requeridos (Regla R07)',
+        message: 'Debes seleccionar al menos una pregunta del banco para conformar el cuestionario.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -261,11 +273,20 @@
       const data = await res.json();
       if (!res.ok) throw new Error(JSON.stringify(data));
 
-      alert('¡Cuestionario parametrizado y guardado con éxito!');
+      await AppDialog.alert({
+        title: 'Cuestionario Guardado con Éxito',
+        message: `El cuestionario <b>"${nombre}"</b> fue configurado correctamente en estado <b>${estado.toUpperCase()}</b> con <b>${preguntas_ids.length}</b> reactivos asociados.`,
+        type: 'success',
+        buttonText: 'Ir al Panel Principal'
+      });
       window.location.href = '/admin-panel/';
 
     } catch (err) {
-      alert('Error al guardar cuestionario: ' + err.message);
+      AppDialog.alert({
+        title: 'Error al Guardar Cuestionario',
+        message: err.message,
+        type: 'error'
+      });
       btn.disabled = false;
       btn.innerText = 'Guardar Cuestionario';
     }

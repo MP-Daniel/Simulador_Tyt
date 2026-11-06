@@ -244,7 +244,7 @@
         updateTimerDisplay();
       } else {
         clearInterval(timerInterval);
-        alert('¡El tiempo límite ha expirado! Tu examen se enviará automáticamente.');
+        AppDialog.toast('¡El tiempo límite ha expirado! Tu examen se enviará automáticamente.', 'warning');
         submitExam();
       }
     }, 1000);
@@ -406,7 +406,11 @@
       // Redirigir a resultados
       window.location.href = `/estudiante/resultados/?intento_id=${currentIntentoId}`;
     } catch (e) {
-      alert('Error al enviar el examen: ' + e.message);
+      AppDialog.alert({
+        title: 'Error de Envío',
+        message: 'Error al enviar el examen: ' + e.message,
+        type: 'error'
+      });
       if (confirmBtn) {
         confirmBtn.disabled = false;
         confirmBtn.innerText = 'Sí, Finalizar';

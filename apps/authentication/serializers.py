@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
+from django.db import models
 from .models import Rol, Permiso
 
 Usuario = get_user_model()
@@ -44,6 +45,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        # Permitir inicio de sesión con Nombre de Usuario, Cédula / Documento de Identidad o Correo
+        identificador = attrs.get('username', '').strip()
+        if identificador:
+            user_match = Usuario.objects.filter(
+                models.Q(username__iexact=identificador) |
+                models.Q(codigo_estudiantil__iexact=identificador) |
+                models.Q(email__iexact=identificador)
+            ).first()
+            if user_match:
+                attrs['username'] = user_match.username
+
         data = super().validate(attrs)
 
         user = self.user

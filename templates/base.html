@@ -417,7 +417,185 @@
         }
       }
     });
+
+    // =========================================================================
+    // SISTEMA GLOBAL DE DIÁLOGOS, CONFIRMACIONES Y TOASTS INSTITUCIONALES
+    // =========================================================================
+    window.AppDialog = {
+      confirm({ title = '¿Confirmar Acción?', message = '', confirmText = 'Aceptar', cancelText = 'Cancelar', type = 'warning' } = {}) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById('globalDialogModal');
+          const box = document.getElementById('globalDialogBox');
+          const titleEl = document.getElementById('globalDialogTitle');
+          const msgEl = document.getElementById('globalDialogMessage');
+          const iconEl = document.getElementById('globalDialogIcon');
+          const cancelBtn = document.getElementById('globalDialogCancelBtn');
+          const confirmBtn = document.getElementById('globalDialogConfirmBtn');
+
+          titleEl.innerText = title;
+          msgEl.innerHTML = typeof message === 'string' ? message.replace(/\n/g, '<br>') : message;
+          confirmBtn.innerText = confirmText;
+          cancelBtn.innerText = cancelText;
+          cancelBtn.classList.remove('hidden');
+
+          let iconSvg = '';
+          confirmBtn.className = 'px-5 py-2 rounded-xl text-white font-bold text-xs transition shadow-sm ';
+
+          if (type === 'danger') {
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-rose-100 text-rose-600';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+            confirmBtn.className += 'bg-rose-600 hover:bg-rose-700';
+          } else if (type === 'success') {
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-emerald-100 text-emerald-700';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            confirmBtn.className += 'bg-emerald-600 hover:bg-emerald-700';
+          } else if (type === 'info') {
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-sky-100 text-uniblue';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+            confirmBtn.className += 'bg-uniblue hover:bg-uniblue-dark';
+          } else {
+            // warning
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-amber-100 text-amber-700';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+            confirmBtn.className += 'bg-amber-600 hover:bg-amber-700';
+          }
+          iconEl.innerHTML = iconSvg;
+
+          modal.classList.remove('hidden');
+          requestAnimationFrame(() => {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+          });
+
+          const cleanup = (val) => {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+              modal.classList.add('hidden');
+              resolve(val);
+            }, 120);
+          };
+
+          confirmBtn.onclick = () => cleanup(true);
+          cancelBtn.onclick = () => cleanup(false);
+        });
+      },
+
+      alert({ title = 'Notificación', message = '', buttonText = 'Entendido', type = 'info' } = {}) {
+        if (typeof arguments[0] === 'string') {
+          message = arguments[0];
+          title = (type === 'error' || type === 'danger') ? 'Atención' : 'Notificación';
+        }
+        return new Promise((resolve) => {
+          const modal = document.getElementById('globalDialogModal');
+          const box = document.getElementById('globalDialogBox');
+          const titleEl = document.getElementById('globalDialogTitle');
+          const msgEl = document.getElementById('globalDialogMessage');
+          const iconEl = document.getElementById('globalDialogIcon');
+          const cancelBtn = document.getElementById('globalDialogCancelBtn');
+          const confirmBtn = document.getElementById('globalDialogConfirmBtn');
+
+          titleEl.innerText = title;
+          msgEl.innerHTML = typeof message === 'string' ? message.replace(/\n/g, '<br>') : message;
+          confirmBtn.innerText = buttonText;
+          cancelBtn.classList.add('hidden');
+
+          let iconSvg = '';
+          confirmBtn.className = 'px-5 py-2 rounded-xl text-white font-bold text-xs transition shadow-sm ';
+
+          if (type === 'error' || type === 'danger') {
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-rose-100 text-rose-600';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+            confirmBtn.className += 'bg-rose-600 hover:bg-rose-700';
+          } else if (type === 'success') {
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-emerald-100 text-emerald-700';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            confirmBtn.className += 'bg-emerald-600 hover:bg-emerald-700';
+          } else {
+            iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-sky-100 text-uniblue';
+            iconSvg = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+            confirmBtn.className += 'bg-uniblue hover:bg-uniblue-dark';
+          }
+          iconEl.innerHTML = iconSvg;
+
+          modal.classList.remove('hidden');
+          requestAnimationFrame(() => {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+          });
+
+          confirmBtn.onclick = () => {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+              modal.classList.add('hidden');
+              resolve();
+            }, 120);
+          };
+        });
+      },
+
+      toast(message, type = 'success', duration = 3500) {
+        const container = document.getElementById('globalToastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto flex items-center gap-3 p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xl text-xs font-semibold text-slate-800 transform transition-all duration-300 translate-y-4 opacity-0';
+
+        let iconSvg = '';
+        if (type === 'success') {
+          iconSvg = '<div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>';
+        } else if (type === 'error' || type === 'danger') {
+          iconSvg = '<div class="w-7 h-7 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>';
+        } else {
+          iconSvg = '<div class="w-7 h-7 rounded-xl bg-sky-100 text-uniblue flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>';
+        }
+
+        toast.innerHTML = `${iconSvg}<div class="flex-grow min-w-0 pr-1">${message}</div>`;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-y-4', 'opacity-0');
+          toast.classList.add('translate-y-0', 'opacity-100');
+        });
+
+        setTimeout(() => {
+          toast.classList.remove('translate-y-0', 'opacity-100');
+          toast.classList.add('translate-y-4', 'opacity-0');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+    };
+
+    window.showConfirm = (opts) => AppDialog.confirm(opts);
+    window.showAlert = (msg, title, type) => AppDialog.alert(typeof msg === 'object' ? msg : { message: msg, title: title || 'Notificación', type: type || 'info' });
   </script>
+
+  <!-- MODAL GLOBAL DE CONFIRMACIONES Y ALERTAS -->
+  <div id="globalDialogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[9999] hidden flex items-center justify-center p-4">
+    <div id="globalDialogBox" class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-150 scale-95 opacity-0">
+      <div class="p-6">
+        <div class="flex items-start gap-3.5">
+          <div id="globalDialogIcon" class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"></div>
+          <div class="flex-grow min-w-0">
+            <h3 id="globalDialogTitle" class="text-base font-bold text-slate-900 leading-snug"></h3>
+            <div id="globalDialogMessage" class="mt-2 text-xs text-slate-600 leading-relaxed"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-slate-50 border-t border-slate-100 px-6 py-3.5 flex justify-end gap-2.5">
+        <button id="globalDialogCancelBtn" type="button" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs transition">
+          Cancelar
+        </button>
+        <button id="globalDialogConfirmBtn" type="button" class="px-5 py-2 rounded-xl bg-uniblue hover:bg-uniblue-dark text-white font-bold text-xs transition shadow-sm">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR GLOBAL DE TOASTS -->
+  <div id="globalToastContainer" class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4"></div>
 
   {% block extra_scripts %}{% endblock %}
 </body>
