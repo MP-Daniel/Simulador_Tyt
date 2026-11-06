@@ -40,3 +40,8 @@ class CreateQuizView(TemplateView):
 
 class ImportExcelView(TemplateView):
     template_name = 'import_excel.html'
+
+
+class ReportsView(TemplateView):
+    template_name = 'reports.html'
+

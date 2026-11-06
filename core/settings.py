@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'banco_preguntas',
     'cuestionarios',
     'evaluaciones',
+    'reportes',
 ]
 
 MIDDLEWARE = [
