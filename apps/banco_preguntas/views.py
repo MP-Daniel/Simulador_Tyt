@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 import openpyxl
 
@@ -310,7 +310,7 @@ class ImportarExcelView(APIView):
 
 class DescargarPlantillaExcelView(APIView):
     """Genera y sirve para descarga la plantilla oficial de preguntas en formato Excel (.xlsx)."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         wb = openpyxl.Workbook()

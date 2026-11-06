@@ -104,7 +104,11 @@
     const intentoId = urlParams.get('intento_id') || urlParams.get('intento');
 
     if (!intentoId) {
-      alert('No se especificó un intento válido.');
+      await AppDialog.alert({
+        title: 'Intento No Válido',
+        message: 'No se especificó un intento válido para consultar resultados.',
+        type: 'warning'
+      });
       window.location.href = '/estudiante/';
       return;
     }
@@ -127,7 +131,6 @@
     } catch (e) {
       document.getElementById('resultsLoading').innerHTML = `
         <div class="p-6 text-center text-red-600">
-          <div class="text-3xl mb-2">🚫</div>
           <div class="font-bold text-sm">${e.message}</div>
           <a href="/estudiante/" class="inline-block mt-4 text-xs bg-uniblue text-white px-4 py-2 rounded-xl">
             ← Volver a Mis Cuestionarios
@@ -154,10 +157,10 @@
     const badge = document.getElementById('badgeEstado');
     if (isApproved) {
       badge.className = "inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 bg-emerald-100 text-emerald-800 border border-emerald-300";
-      badge.innerText = "✓ INTENTO APROBADO";
+      badge.innerText = "INTENTO APROBADO";
     } else {
       badge.className = "inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 bg-red-100 text-red-800 border border-red-300";
-      badge.innerText = "✗ REPROBADO";
+      badge.innerText = "REPROBADO";
     }
 
     const earned = parseFloat(data.puntaje_obtenido);
@@ -217,7 +220,7 @@
           optStyle = 'border-red-300 bg-red-50 text-red-900';
           mark = '<span class="text-[10px] bg-red-500 text-white font-bold px-2 py-0.5 rounded">Tu Elección</span>';
         } else if (opt.letra === resp.opcion_seleccionada_letra && isCorrect) {
-          mark = '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded">Tu Elección ✓</span>';
+          mark = '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded">Tu Elección</span>';
         }
 
         optionsHtml += `

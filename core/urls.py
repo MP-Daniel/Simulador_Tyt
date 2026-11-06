@@ -15,6 +15,7 @@ from .views import (
     QuestionBankView,
     CreateQuizView,
     ImportExcelView,
+    ReportsView,
 )
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path('api/banco/', include('banco_preguntas.urls')),
     path('api/cuestionarios/', include('cuestionarios.urls')),
     path('api/evaluaciones/', include('evaluaciones.urls')),
+    path('api/reportes/', include('reportes.urls')),
 
     # =========================================================================
     # VISTAS DE INTERFAZ WEB (HTML + Tailwind + JavaScript)
@@ -42,6 +44,7 @@ urlpatterns = [
     path('admin-panel/preguntas/', QuestionBankView.as_view(), name='web_question_bank'),
     path('admin-panel/cuestionarios/crear/', CreateQuizView.as_view(), name='web_create_quiz'),
     path('admin-panel/importar-excel/', ImportExcelView.as_view(), name='web_import_excel'),
+    path('admin-panel/reportes/', ReportsView.as_view(), name='web_reports'),
 ]
 
 if settings.DEBUG:

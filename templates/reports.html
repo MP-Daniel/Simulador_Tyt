@@ -1,0 +1,863 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Consultas, Reportes y Exportación a Excel - Simulador Saber TyT{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
+
+  <!-- =========================================================================
+       HEADER Y ACCIONES DE EXPORTACIÓN EXCEL
+       ========================================================================= -->
+  <div class="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-uniblue">
+        <span>Panel Administrativo</span>
+        <span>•</span>
+        <span>Reportes y Analítica</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+        <span>Módulo de Consultas y Reportes</span>
+        <span class="text-xs bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-full border border-emerald-200">openpyxl .xlsx</span>
+      </h1>
+      <p class="text-slate-500 text-sm">
+        Filtros jerárquicos en cascada, indicadores de desempeño y exportación de reportes académicos a Excel.
+      </p>
+    </div>
+
+    <!-- Menú Desplegable de Exportación Excel -->
+    <div class="relative inline-block text-left self-stretch md:self-auto" id="dropdownContainer">
+      <button type="button" id="btnExportMenu" onclick="toggleExportMenu()"
+        class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-2xl shadow-xs transition transform active:scale-95 text-sm">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span>Exportar a Excel (.xlsx)</span>
+        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+
+      <div id="exportMenu" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50">
+        <div class="px-4 py-2 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          Seleccione Formato de Reporte
+        </div>
+        <button onclick="exportarExcel('consolidado')" class="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-3 transition">
+          <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[11px]">A</span>
+          <div>
+            <div class="font-bold">Reporte A: Consolidado General</div>
+            <div class="text-[10px] text-slate-400">Detalle completo + hoja de promedios</div>
+          </div>
+        </button>
+        <button onclick="exportarExcel('ejes')" class="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-3 transition">
+          <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[11px]">B</span>
+          <div>
+            <div class="font-bold">Reporte B: Desempeño por Eje</div>
+            <div class="text-[10px] text-slate-400">Aciertos, errores y porcentajes por tema</div>
+          </div>
+        </button>
+        <button onclick="exportarExcel('historial')" class="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-3 transition">
+          <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[11px]">C</span>
+          <div>
+            <div class="font-bold">Reporte C: Historial Individual</div>
+            <div class="text-[10px] text-slate-400">Evolución cronológica de intentos</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       DISEÑO DE FILTROS JERÁRQUICOS (Sección 4 del PDF)
+       AÑO -> PERÍODO -> CURSO/GRUPO -> EJE TEMÁTICO -> ESTUDIANTE
+       ========================================================================= -->
+  <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div class="flex items-center gap-2">
+        <h2 class="font-bold text-slate-800 text-sm">Filtros Jerárquicos en Cascada (De General a Particular)</h2>
+      </div>
+      <div class="text-xs text-slate-400">
+        Regla: El cambio de un filtro padre recalcula y limpia las opciones dependientes
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <!-- 1. Año Académico -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">1. Año Académico</label>
+        <select id="filtroAnio" onchange="onAnioChange()"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-uniblue focus:ring-1 focus:ring-uniblue outline-none transition">
+          <option value="">(Todos los años)</option>
+        </select>
+      </div>
+
+      <!-- 2. Período Académico -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">2. Período</label>
+        <select id="filtroPeriodo" onchange="onPeriodoChange()"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-uniblue focus:ring-1 focus:ring-uniblue outline-none transition">
+          <option value="">(Todos los períodos)</option>
+        </select>
+      </div>
+
+      <!-- 3. Curso / Grupo -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">3. Curso / Grupo</label>
+        <select id="filtroCurso" onchange="onCursoChange()"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-uniblue focus:ring-1 focus:ring-uniblue outline-none transition">
+          <option value="">(Todos los cursos)</option>
+        </select>
+      </div>
+
+      <!-- 4. Eje Temático (Saber TyT) -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">4. Eje Temático</label>
+        <select id="filtroEje" onchange="ejecutarConsulta()"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-uniblue focus:ring-1 focus:ring-uniblue outline-none transition">
+          <option value="">(Todos los ejes)</option>
+        </select>
+      </div>
+
+      <!-- 5. Estudiante del Grupo Filtrado -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">5. Estudiante</label>
+        <select id="filtroEstudiante" onchange="ejecutarConsulta()"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-uniblue focus:ring-1 focus:ring-uniblue outline-none transition">
+          <option value="">(Todos los estudiantes)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Barra de búsqueda rápida por nombre o código y botones de acción -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+      <div class="w-full sm:w-80 relative">
+        <input type="text" id="filtroBusqueda" placeholder="Buscar por nombre, código o usuario..."
+          onkeydown="if(event.key==='Enter') ejecutarConsulta()"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-uniblue focus:ring-1 focus:ring-uniblue outline-none transition">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <button onclick="ejecutarConsulta()"
+          class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-uniblue hover:bg-sky-800 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-xs transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <span>Consultar</span>
+        </button>
+
+        <button onclick="limpiarFiltros()"
+          class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-xl text-xs transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Limpiar filtros</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PANEL DE INDICADORES ESTADÍSTICOS (KPIs)
+       ========================================================================= -->
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <!-- Estudiantes Evaluados -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Estudiantes</div>
+      <div class="text-2xl font-black text-slate-900" id="kpiEstudiantes">0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Alumnos únicos evaluados</div>
+    </div>
+
+    <!-- Intentos Finalizados -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Intentos</div>
+      <div class="text-2xl font-black text-slate-900" id="kpiIntentos">0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Evaluaciones completadas</div>
+    </div>
+
+    <!-- Calificación Promedio -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Promedio</div>
+      <div class="text-2xl font-black text-uniblue" id="kpiPromedio">0.00</div>
+      <div class="text-[10px] text-slate-400 mt-1">Escala 0.0 a 5.0</div>
+    </div>
+
+    <!-- Nota Mínima -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nota Mínima</div>
+      <div class="text-2xl font-black text-rose-600" id="kpiMinima">0.00</div>
+      <div class="text-[10px] text-slate-400 mt-1">Calificación más baja</div>
+    </div>
+
+    <!-- Nota Máxima -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nota Máxima</div>
+      <div class="text-2xl font-black text-emerald-600" id="kpiMaxima">0.00</div>
+      <div class="text-[10px] text-slate-400 mt-1">Mejor resultado</div>
+    </div>
+
+    <!-- Porcentaje de Aprobación -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">% Aprobación</div>
+      <div class="text-2xl font-black text-slate-900 flex items-baseline gap-1">
+        <span id="kpiAprobacion">0%</span>
+      </div>
+      <div class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
+        <span>Umbral: <b class="text-slate-600">3.0</b></span>
+        <span id="kpiAprRep" class="font-bold text-emerald-600">0/0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PESTAÑAS DE LAS 7 CONSULTAS OBLIGATORIAS (Sección 6 del PDF)
+       ========================================================================= -->
+  <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+    <!-- Barra de Pestañas sin emojis -->
+    <div class="border-b border-slate-200 flex flex-wrap gap-2 text-xs font-semibold">
+      <button onclick="cambiarConsulta('consolidado')" id="tab-consolidado"
+        class="tab-btn px-4 py-2.5 border-b-2 border-uniblue text-uniblue font-bold transition">
+        1. Consolidado General
+      </button>
+      <button onclick="cambiarConsulta('periodo')" id="tab-periodo"
+        class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+        2. Por Año y Período
+      </button>
+      <button onclick="cambiarConsulta('curso')" id="tab-curso"
+        class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+        3. Por Curso / Grupo
+      </button>
+      <button onclick="cambiarConsulta('ejes')" id="tab-ejes"
+        class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+        4. Desempeño por Eje
+      </button>
+      <button onclick="cambiarConsulta('calificaciones')" id="tab-calificaciones"
+        class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+        5. Calificaciones
+      </button>
+      <button onclick="cambiarConsulta('historial')" id="tab-historial"
+        class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+        6. Historial Individual
+      </button>
+      <button onclick="cambiarConsulta('dificultad')" id="tab-dificultad"
+        class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+        7. Preguntas Difíciles
+      </button>
+    </div>
+
+    <!-- Descripción Contextual de la Consulta -->
+    <div id="consultaDescripcion" class="text-xs text-slate-500 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
+      <span>Cargando consulta...</span>
+      <span class="text-[11px] font-bold text-slate-400" id="totalRegistrosBadge">0 registros</span>
+    </div>
+
+    <!-- =========================================================================
+         TABLA DINÁMICA PAGINADA
+         ========================================================================= -->
+    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+      <table class="w-full text-left text-xs border-collapse" id="tablaResultados">
+        <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200" id="tablaHead">
+          <!-- Generado dinámicamente según la consulta activa -->
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700" id="tablaBody">
+          <tr>
+            <td colspan="10" class="text-center py-8 text-slate-400">
+              <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-uniblue border-t-transparent mr-2 align-middle"></div>
+              Cargando registros académicos...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Controles de Paginación -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+      <div id="paginacionInfo">Mostrando 0 de 0 registros</div>
+      <div class="flex items-center gap-2">
+        <button id="btnPrevPage" onclick="cambiarPagina(-1)"
+          class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Anterior
+        </button>
+        <span id="paginacionNumeros" class="font-bold text-slate-700 px-2">Pág. 1 / 1</span>
+        <button id="btnNextPage" onclick="cambiarPagina(1)"
+          class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Siguiente
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- =========================================================================
+     LÓGICA JAVASCRIPT: FILTROS EN CASCADA, CONSULTAS Y DESCARGA EXCEL
+     ========================================================================= -->
+<script>
+  // Función auxiliar universal para peticiones autenticadas
+  async function apiCall(url, options = {}) {
+    if (typeof authFetch === 'function') {
+      return await authFetch(url, options);
+    } else if (typeof Auth !== 'undefined' && typeof Auth.apiFetch === 'function') {
+      return await Auth.apiFetch(url, options);
+    } else {
+      const token = localStorage.getItem('jwt_access_token') || localStorage.getItem('access_token');
+      const headers = options.headers ? { ...options.headers } : {};
+      headers['Content-Type'] = 'application/json';
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      options.headers = headers;
+      return await fetch(url, options);
+    }
+  }
+
+  let consultaActual = 'consolidado';
+  let paginaActual = 1;
+  const pageSize = 10;
+  let cacheFiltros = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Cargar las opciones de filtros en cascada iniciales
+    await cargarFiltrosCascada();
+    // 2. Ejecutar la primera consulta y cálculo de KPIs
+    await ejecutarConsulta();
+  });
+
+  // Cerrar menú desplegable al hacer clic fuera
+  document.addEventListener('click', (e) => {
+    const container = document.getElementById('dropdownContainer');
+    const menu = document.getElementById('exportMenu');
+    if (container && !container.contains(e.target) && menu) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  function toggleExportMenu() {
+    const menu = document.getElementById('exportMenu');
+    menu.classList.toggle('hidden');
+  }
+
+  // =========================================================================
+  // GESTIÓN DE FILTROS EN CASCADA
+  // =========================================================================
+  async function cargarFiltrosCascada(anio = null, periodoId = null, cursoId = null) {
+    try {
+      const params = new URLSearchParams();
+      if (anio) params.append('anio', anio);
+      if (periodoId) params.append('periodo_id', periodoId);
+      if (cursoId) params.append('curso_id', cursoId);
+
+      const res = await apiCall(`/api/reportes/filtros/?${params.toString()}`);
+      if (!res.ok) throw new Error('Error al cargar opciones de filtros.');
+      const data = await res.json();
+      cacheFiltros = data;
+
+      // 1. Poblar Años (si no estaban poblados)
+      const selAnio = document.getElementById('filtroAnio');
+      if (selAnio.options.length <= 1) {
+        selAnio.innerHTML = '<option value="">(Todos los años)</option>';
+        data.anios.forEach(a => {
+          selAnio.innerHTML += `<option value="${a}">${a}</option>`;
+        });
+      }
+
+      // 2. Poblar Períodos
+      const selPeriodo = document.getElementById('filtroPeriodo');
+      const valPeriodoActual = selPeriodo.value;
+      selPeriodo.innerHTML = '<option value="">(Todos los períodos)</option>';
+      data.periodos.forEach(p => {
+        selPeriodo.innerHTML += `<option value="${p.id}" ${p.id == valPeriodoActual ? 'selected' : ''}>${p.nombre} (${p.anio})</option>`;
+      });
+
+      // 3. Poblar Cursos
+      const selCurso = document.getElementById('filtroCurso');
+      const valCursoActual = selCurso.value;
+      selCurso.innerHTML = '<option value="">(Todos los cursos)</option>';
+      data.cursos.forEach(c => {
+        selCurso.innerHTML += `<option value="${c.id}" ${c.id == valCursoActual ? 'selected' : ''}>${c.nombre} [${c.periodo_nombre}]</option>`;
+      });
+
+      // 4. Poblar Ejes (Categorías Saber TyT)
+      const selEje = document.getElementById('filtroEje');
+      if (selEje.options.length <= 1) {
+        selEje.innerHTML = '<option value="">(Todos los ejes temáticos)</option>';
+        data.ejes.forEach(e => {
+          selEje.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+        });
+      }
+
+      // 5. Poblar Estudiantes del grupo filtrado
+      const selEst = document.getElementById('filtroEstudiante');
+      selEst.innerHTML = '<option value="">(Todos los estudiantes)</option>';
+      data.estudiantes.forEach(est => {
+        selEst.innerHTML += `<option value="${est.id}">${est.nombre_completo} (${est.codigo})</option>`;
+      });
+
+    } catch (err) {
+      console.error('Error cargando filtros:', err);
+    }
+  }
+
+  // Evento cuando cambia el Año
+  async function onAnioChange() {
+    const anio = document.getElementById('filtroAnio').value;
+    document.getElementById('filtroPeriodo').value = '';
+    document.getElementById('filtroCurso').value = '';
+    document.getElementById('filtroEstudiante').value = '';
+    await cargarFiltrosCascada(anio, null, null);
+    await ejecutarConsulta();
+  }
+
+  // Evento cuando cambia el Período
+  async function onPeriodoChange() {
+    const anio = document.getElementById('filtroAnio').value;
+    const periodoId = document.getElementById('filtroPeriodo').value;
+    document.getElementById('filtroCurso').value = '';
+    document.getElementById('filtroEstudiante').value = '';
+    await cargarFiltrosCascada(anio, periodoId, null);
+    await ejecutarConsulta();
+  }
+
+  // Evento cuando cambia el Curso
+  async function onCursoChange() {
+    const anio = document.getElementById('filtroAnio').value;
+    const periodoId = document.getElementById('filtroPeriodo').value;
+    const cursoId = document.getElementById('filtroCurso').value;
+    document.getElementById('filtroEstudiante').value = '';
+    await cargarFiltrosCascada(anio, periodoId, cursoId);
+    await ejecutarConsulta();
+  }
+
+  function limpiarFiltros() {
+    document.getElementById('filtroAnio').value = '';
+    document.getElementById('filtroPeriodo').value = '';
+    document.getElementById('filtroCurso').value = '';
+    document.getElementById('filtroEje').value = '';
+    document.getElementById('filtroEstudiante').value = '';
+    document.getElementById('filtroBusqueda').value = '';
+    cargarFiltrosCascada();
+    ejecutarConsulta();
+  }
+
+  function construirParams() {
+    const params = new URLSearchParams();
+    const anio = document.getElementById('filtroAnio').value;
+    const periodo = document.getElementById('filtroPeriodo');
+    const curso = document.getElementById('filtroCurso');
+    const eje = document.getElementById('filtroEje');
+    const estudiante = document.getElementById('filtroEstudiante').value;
+    const busqueda = document.getElementById('filtroBusqueda').value.trim();
+
+    if (anio) params.append('anio', anio);
+    if (periodo.value) {
+      params.append('periodo_id', periodo.value);
+      params.append('periodo_nombre', periodo.options[periodo.selectedIndex].text);
+    }
+    if (curso.value) {
+      params.append('curso_id', curso.value);
+      params.append('curso_nombre', curso.options[curso.selectedIndex].text);
+    }
+    if (eje.value) {
+      params.append('categoria_id', eje.value);
+      params.append('eje_nombre', eje.options[eje.selectedIndex].text);
+    }
+    if (estudiante) params.append('estudiante_id', estudiante);
+    if (busqueda) params.append('busqueda', busqueda);
+
+    return params;
+  }
+
+  // =========================================================================
+  // EJECUCIÓN DE CONSULTA Y ACTUALIZACIÓN DE INDICADORES
+  // =========================================================================
+  async function ejecutarConsulta(page = 1) {
+    paginaActual = page;
+    const params = construirParams();
+
+    // 1. Actualizar Indicadores KPI
+    actualizarKPIs(params);
+
+    // 2. Cargar tabla paginada de la consulta activa
+    params.append('page', paginaActual);
+    params.append('page_size', pageSize);
+
+    const tbody = document.getElementById('tablaBody');
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" class="text-center py-8 text-slate-400">
+          <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-uniblue border-t-transparent mr-2 align-middle"></div>
+          Consultando registros en base de datos...
+        </td>
+      </tr>`;
+
+    try {
+      const res = await apiCall(`/api/reportes/consultas/${consultaActual}/?${params.toString()}`);
+      if (!res.ok) throw new Error('Error al ejecutar la consulta.');
+      const data = await res.json();
+      renderizarTabla(data);
+    } catch (err) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="12" class="text-center py-6 text-rose-500 font-bold">
+            ${err.message || 'No fue posible cargar los datos.'}
+          </td>
+        </tr>`;
+    }
+  }
+
+  async function actualizarKPIs(params) {
+    try {
+      const res = await apiCall(`/api/reportes/indicadores/?${params.toString()}`);
+      if (!res.ok) return;
+      const kpi = await res.json();
+
+      document.getElementById('kpiEstudiantes').innerText = kpi.estudiantes_evaluados;
+      document.getElementById('kpiIntentos').innerText = kpi.intentos_finalizados;
+      document.getElementById('kpiPromedio').innerText = kpi.calificacion_promedio.toFixed(2);
+      document.getElementById('kpiMinima').innerText = kpi.calificacion_minima.toFixed(2);
+      document.getElementById('kpiMaxima').innerText = kpi.calificacion_maxima.toFixed(2);
+      document.getElementById('kpiAprobacion').innerText = `${kpi.porcentaje_aprobacion.toFixed(1)}%`;
+      document.getElementById('kpiAprRep').innerText = `${kpi.aprobados} apr / ${kpi.reprobados} rep`;
+    } catch (e) {
+      console.warn('Error al actualizar KPIs:', e);
+    }
+  }
+
+  function cambiarConsulta(tipo) {
+    consultaActual = tipo;
+    paginaActual = 1;
+
+    // Actualizar estilos de pestañas
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.className = 'tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition';
+    });
+    const activeBtn = document.getElementById(`tab-${tipo}`);
+    if (activeBtn) {
+      activeBtn.className = 'tab-btn px-4 py-2.5 border-b-2 border-uniblue text-uniblue font-bold transition';
+    }
+
+    ejecutarConsulta(1);
+  }
+
+  function cambiarPagina(delta) {
+    ejecutarConsulta(paginaActual + delta);
+  }
+
+  // =========================================================================
+  // RENDERIZADO DINÁMICO DE LAS 7 CONSULTAS
+  // =========================================================================
+  function renderizarTabla(resp) {
+    const thead = document.getElementById('tablaHead');
+    const tbody = document.getElementById('tablaBody');
+    const desc = document.getElementById('consultaDescripcion');
+    const totalBadge = document.getElementById('totalRegistrosBadge');
+    const records = resp.registros || [];
+
+    totalBadge.innerText = `${resp.total_registros} registros encontrados`;
+
+    // Paginación UI
+    document.getElementById('paginacionInfo').innerText = 
+      `Mostrando ${records.length} de ${resp.total_registros} registros`;
+    document.getElementById('paginacionNumeros').innerText = 
+      `Pág. ${resp.pagina_actual} / ${resp.total_paginas || 1}`;
+    document.getElementById('btnPrevPage').disabled = (resp.pagina_actual <= 1);
+    document.getElementById('btnNextPage').disabled = (resp.pagina_actual >= resp.total_paginas);
+
+    if (records.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="12" class="text-center py-10 text-slate-400">
+            <div class="font-bold text-slate-600">No se encontraron registros con los filtros seleccionados</div>
+            <div class="text-[11px] text-slate-400 mt-1">Pruebe seleccionando "Todos" en alguno de los niveles jerárquicos.</div>
+          </td>
+        </tr>`;
+      return;
+    }
+
+    // Configurar encabezados y filas por tipo de consulta
+    switch (consultaActual) {
+      case 'consolidado':
+        desc.firstElementChild.innerText = 'Consulta 1: Consolidado general de evaluaciones con detalles de estudiantes e intentos.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-3">Año / Período</th>
+            <th class="py-3 px-3">Curso / Grupo</th>
+            <th class="py-3 px-3">Estudiante</th>
+            <th class="py-3 px-3">Simulacro</th>
+            <th class="py-3 px-3">Fecha</th>
+            <th class="py-3 px-3 text-center">Desglose (A / E / O)</th>
+            <th class="py-3 px-3 text-right">Nota (5.0)</th>
+            <th class="py-3 px-3 text-center">Estado</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-2.5 px-3 font-semibold text-slate-800">${r.anio} • ${r.periodo}</td>
+            <td class="py-2.5 px-3 text-slate-600">${r.curso}</td>
+            <td class="py-2.5 px-3">
+              <div class="font-bold text-slate-800">${r.estudiante_nombre}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${r.estudiante_codigo}</div>
+            </td>
+            <td class="py-2.5 px-3 text-slate-700">${r.simulacro}</td>
+            <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${r.fecha}</td>
+            <td class="py-2.5 px-3 text-center font-mono text-[11px]">
+              <span class="text-emerald-700 font-bold">${r.aciertos} aciertos</span> / 
+              <span class="text-rose-600 font-bold">${r.errores} errores</span> / 
+              <span class="text-slate-400">${r.omitidas} omitidas</span>
+            </td>
+            <td class="py-2.5 px-3 text-right font-black ${r.calificacion >= 3.0 ? 'text-emerald-600' : 'text-rose-600'}">
+              ${r.calificacion.toFixed(2)}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.estado === 'Aprobado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${r.estado}
+              </span>
+            </td>
+          </tr>`).join('');
+        break;
+
+      case 'periodo':
+        desc.firstElementChild.innerText = 'Consulta 2: Comparativa de cantidad de evaluaciones, promedios y aprobación por período académico.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-4">Año</th>
+            <th class="py-3 px-4">Período Académico</th>
+            <th class="py-3 px-4 text-center">Total Evaluaciones</th>
+            <th class="py-3 px-4 text-right">Promedio</th>
+            <th class="py-3 px-4 text-right">Mínima</th>
+            <th class="py-3 px-4 text-right">Máxima</th>
+            <th class="py-3 px-4 text-center">Aprobados / Reprobados</th>
+            <th class="py-3 px-4 text-right">% Aprobación</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-bold text-slate-800">${r.anio}</td>
+            <td class="py-3 px-4 font-bold text-uniblue">${r.periodo}</td>
+            <td class="py-3 px-4 text-center font-bold text-slate-800">${r.total_evaluaciones}</td>
+            <td class="py-3 px-4 text-right font-black text-slate-900">${r.promedio.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right text-rose-600">${r.nota_minima.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right text-emerald-600">${r.nota_maxima.toFixed(2)}</td>
+            <td class="py-3 px-4 text-center font-mono">
+              <span class="text-emerald-700 font-bold">${r.aprobados} aprobados</span> / 
+              <span class="text-rose-600 font-bold">${r.reprobados} reprobados</span>
+            </td>
+            <td class="py-3 px-4 text-right font-bold ${r.porcentaje_aprobacion >= 60 ? 'text-emerald-600' : 'text-amber-600'}">
+              ${r.porcentaje_aprobacion.toFixed(1)}%
+            </td>
+          </tr>`).join('');
+        break;
+
+      case 'curso':
+        desc.firstElementChild.innerText = 'Consulta 3: Estudiantes evaluados, promedio, nota mínima y máxima por curso/grupo.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-4">Curso / Grupo</th>
+            <th class="py-3 px-4">Período</th>
+            <th class="py-3 px-4 text-center">Estudiantes Evaluados</th>
+            <th class="py-3 px-4 text-center">Total Intentos</th>
+            <th class="py-3 px-4 text-right">Promedio Curso</th>
+            <th class="py-3 px-4 text-right">Nota Mínima</th>
+            <th class="py-3 px-4 text-right">Nota Máxima</th>
+            <th class="py-3 px-4 text-right">% Aprobación</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-bold text-slate-900">${r.curso_nombre}</td>
+            <td class="py-3 px-4 text-slate-500">${r.periodo} (${r.anio})</td>
+            <td class="py-3 px-4 text-center font-bold text-slate-800">${r.estudiantes_evaluados}</td>
+            <td class="py-3 px-4 text-center text-slate-600">${r.total_intentos}</td>
+            <td class="py-3 px-4 text-right font-black text-uniblue">${r.promedio.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right text-rose-600">${r.nota_minima.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right text-emerald-600">${r.nota_maxima.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right font-bold ${r.porcentaje_aprobacion >= 60 ? 'text-emerald-600' : 'text-amber-600'}">
+              ${r.porcentaje_aprobacion.toFixed(1)}%
+            </td>
+          </tr>`).join('');
+        break;
+
+      case 'ejes':
+        desc.firstElementChild.innerText = 'Consulta 4: Desempeño por eje temático calculado estrictamente sobre respuestas contestadas.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-4">Eje Temático (Saber TyT)</th>
+            <th class="py-3 px-4 text-center">Preguntas Respondidas</th>
+            <th class="py-3 px-4 text-center">Respuestas Correctas</th>
+            <th class="py-3 px-4 text-center">Respuestas Incorrectas</th>
+            <th class="py-3 px-4 text-right">% de Acierto</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-bold text-slate-900">
+              ${r.eje_tematico}
+            </td>
+            <td class="py-3 px-4 text-center font-bold text-slate-800">${r.total_respondidas}</td>
+            <td class="py-3 px-4 text-center text-emerald-600 font-bold">${r.aciertos}</td>
+            <td class="py-3 px-4 text-center text-rose-600 font-bold">${r.errores}</td>
+            <td class="py-3 px-4 text-right font-black text-sm ${r.porcentaje_acierto >= 60 ? 'text-emerald-600' : 'text-rose-600'}">
+              ${r.porcentaje_acierto.toFixed(1)}%
+            </td>
+          </tr>`).join('');
+        break;
+
+      case 'calificaciones':
+        desc.firstElementChild.innerText = 'Consulta 5: Calificaciones individuales registradas por estudiante, curso y simulacro.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-4">Estudiante</th>
+            <th class="py-3 px-4">Curso</th>
+            <th class="py-3 px-4">Simulacro</th>
+            <th class="py-3 px-4">Fecha Presentación</th>
+            <th class="py-3 px-4 text-right">Nota Final (0.0 - 5.0)</th>
+            <th class="py-3 px-4 text-center">Estado</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900">${r.estudiante_nombre}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${r.estudiante_codigo}</div>
+            </td>
+            <td class="py-3 px-4 text-slate-600">${r.curso}</td>
+            <td class="py-3 px-4 font-semibold text-slate-800">${r.simulacro}</td>
+            <td class="py-3 px-4 text-slate-500 whitespace-nowrap">${r.fecha}</td>
+            <td class="py-3 px-4 text-right font-black text-sm ${r.calificacion >= 3.0 ? 'text-emerald-600' : 'text-rose-600'}">
+              ${r.calificacion.toFixed(2)}
+            </td>
+            <td class="py-3 px-4 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${r.estado === 'Aprobado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${r.estado}
+              </span>
+            </td>
+          </tr>`).join('');
+        break;
+
+      case 'historial':
+        desc.firstElementChild.innerText = 'Consulta 6: Historial individual y evolución cronológica de intentos del estudiante.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-3">Estudiante</th>
+            <th class="py-3 px-3 text-center">Intento</th>
+            <th class="py-3 px-3">Simulacro</th>
+            <th class="py-3 px-3">Curso / Período</th>
+            <th class="py-3 px-3">Fecha</th>
+            <th class="py-3 px-3 text-center">Desglose de Desempeño</th>
+            <th class="py-3 px-3 text-right">Nota Final</th>
+            <th class="py-3 px-3 text-center">Resultado</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-2.5 px-3 font-bold text-slate-900">${r.estudiante_nombre}</td>
+            <td class="py-2.5 px-3 text-center font-bold text-uniblue">Intento ${r.numero_intento}</td>
+            <td class="py-2.5 px-3 text-slate-700">${r.simulacro}</td>
+            <td class="py-2.5 px-3 text-slate-500">${r.curso} (${r.periodo})</td>
+            <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${r.fecha}</td>
+            <td class="py-2.5 px-3 text-center font-mono text-[11px]">
+              <span class="text-emerald-700 font-bold">${r.aciertos} aciertos</span> / 
+              <span class="text-rose-600 font-bold">${r.errores} errores</span>
+            </td>
+            <td class="py-2.5 px-3 text-right font-black ${r.nota_final >= 3.0 ? 'text-emerald-600' : 'text-rose-600'}">
+              ${r.nota_final.toFixed(2)}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.estado === 'Aprobado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${r.estado}
+              </span>
+            </td>
+          </tr>`).join('');
+        break;
+
+      case 'dificultad':
+        desc.firstElementChild.innerText = 'Consulta 7: Preguntas de mayor dificultad ordenadas por menor tasa de acierto en el simulador.';
+        thead.innerHTML = `
+          <tr>
+            <th class="py-3 px-4">Reactivo</th>
+            <th class="py-3 px-4">Eje Temático</th>
+            <th class="py-3 px-4">Enunciado de la Pregunta</th>
+            <th class="py-3 px-4 text-center">Total Respuestas</th>
+            <th class="py-3 px-4 text-center">Errores</th>
+            <th class="py-3 px-4 text-right">% Acierto</th>
+          </tr>`;
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-mono font-bold text-slate-700">P-${r.pregunta_id}</td>
+            <td class="py-3 px-4 font-semibold text-uniblue">${r.eje_tematico}</td>
+            <td class="py-3 px-4 text-slate-700">${r.enunciado}</td>
+            <td class="py-3 px-4 text-center font-bold text-slate-800">${r.total_respuestas}</td>
+            <td class="py-3 px-4 text-center text-rose-600 font-bold">${r.errores}</td>
+            <td class="py-3 px-4 text-right font-black ${r.porcentaje_acierto < 50 ? 'text-rose-600' : 'text-emerald-600'}">
+              ${r.porcentaje_acierto.toFixed(1)}%
+            </td>
+          </tr>`).join('');
+        break;
+    }
+  }
+
+  // =========================================================================
+  // DESCARGA BINARIA DEL ARCHIVO EXCEL (.XLSX) CON TOKEN JWT
+  // =========================================================================
+  async function exportarExcel(tipo) {
+    const params = construirParams();
+    params.append('tipo', tipo);
+
+    // Cerrar el menú desplegable
+    document.getElementById('exportMenu').classList.add('hidden');
+
+    try {
+      const token = (typeof Auth !== 'undefined' && typeof Auth.getAccessToken === 'function') 
+        ? Auth.getAccessToken() 
+        : (localStorage.getItem('jwt_access_token') || localStorage.getItem('access_token'));
+
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/reportes/exportar/excel/?${params.toString()}`, {
+        headers: headers
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          AppDialog.alert({
+            title: 'Acceso Denegado',
+            message: 'Se requiere permiso administrativo para descargar reportes institucionales.',
+            type: 'danger'
+          });
+        } else {
+          AppDialog.alert({
+            title: 'Error en Exportación',
+            message: 'No se pudo generar el reporte Excel en el servidor.',
+            type: 'error'
+          });
+        }
+        return;
+      }
+
+      // Procesar blob para forzar la descarga en el navegador
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('Content-Disposition') || '';
+      let filename = `Reporte_${tipo}_SaberTyT.xlsx`;
+      const match = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      AppDialog.toast(`Descargando ${filename}...`, 'info');
+
+    } catch (e) {
+      console.error('Error descargando Excel:', e);
+      AppDialog.alert({
+        title: 'Error de Red',
+        message: 'Error de conexión al exportar el archivo Excel.',
+        type: 'error'
+      });
+    }
+  }
+</script>
+{% endblock %}

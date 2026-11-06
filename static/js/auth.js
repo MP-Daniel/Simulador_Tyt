@@ -7,11 +7,11 @@
 
 const Auth = {
   getAccessToken() {
-    return localStorage.getItem('jwt_access_token');
+    return localStorage.getItem('jwt_access_token') || localStorage.getItem('access_token');
   },
 
   getRefreshToken() {
-    return localStorage.getItem('jwt_refresh_token');
+    return localStorage.getItem('jwt_refresh_token') || localStorage.getItem('refresh_token');
   },
 
   getUser() {
@@ -41,7 +41,7 @@ const Auth = {
 
   hasPermission(permCode) {
     const user = this.getUser();
-    if (!user) return False;
+    if (!user) return false;
     if (user.is_superuser) return true;
     const perms = user.permisos || [];
     return perms.includes(permCode);
@@ -145,4 +145,10 @@ const Auth = {
       window.location.href = redirectUrl;
     }
   }
+};
+
+// Exponer Auth y authFetch globalmente para compatibilidad total
+window.Auth = Auth;
+window.authFetch = function(url, options) {
+  return Auth.apiFetch(url, options);
 };

@@ -22,10 +22,10 @@
       <!-- Selector de Pestañas -->
       <div class="flex bg-slate-200/80 p-1 rounded-2xl text-xs font-bold">
         <button id="tabUsersBtn" onclick="switchTab('users')" class="px-4 py-2 rounded-xl bg-white text-uniblue shadow-sm transition">
-          👤 Usuarios (<span id="countUsersBadge">0</span>)
+          Usuarios (<span id="countUsersBadge">0</span>)
         </button>
         <button id="tabRolesBtn" onclick="switchTab('roles')" class="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
-          🛡️ Roles y Permisos (<span id="countRolesBadge">0</span>)
+          Roles y Permisos (<span id="countRolesBadge">0</span>)
         </button>
       </div>
     </div>
@@ -105,8 +105,9 @@
         </div>
       </div>
       <div>
-        <label class="block font-bold text-slate-700 mb-1">Código Estudiantil o Cédula *</label>
-        <input type="text" id="newStudentCode" required placeholder="SIS-2026-03" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+        <label class="block font-bold text-slate-700 mb-1">Cédula o Documento de Identidad *</label>
+        <input type="text" id="newStudentCode" required placeholder="Ej. 1004123456 o SIS-2026-03" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+        <p class="text-[10px] text-slate-400 mt-1">El usuario podrá iniciar sesión ingresando este documento o su nombre de usuario.</p>
       </div>
       <div>
         <label class="block font-bold text-slate-700 mb-1">Correo Institucional *</label>
@@ -281,13 +282,22 @@
   }
 
   async function toggleUserActive(userId) {
+    const confirmed = await AppDialog.confirm({
+      title: 'Modificar Estado de Cuenta',
+      message: '¿Estás seguro de que deseas cambiar el estado activo de este usuario?',
+      confirmText: 'Sí, cambiar estado',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/auth/usuarios/${userId}/toggle-active/`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error al cambiar estado.');
+      AppDialog.toast('Estado de cuenta actualizado correctamente.', 'success');
       loadUsers();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -319,7 +329,7 @@
           <div>
             <div class="flex justify-between items-start gap-2 mb-2">
               <span class="text-xs font-bold ${isPredet ? 'text-uniblue' : 'text-amber-700'} uppercase tracking-wider">
-                ${isPredet ? '★ Rol Predeterminado' : '⚙️ Rol Personalizado'}
+                ${isPredet ? 'Rol Predeterminado' : 'Rol Personalizado'}
               </span>
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${r.activo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
                 ${r.activo ? 'Activo' : 'Inactivo'}
@@ -335,20 +345,25 @@
               <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
                 ${permisos.map(p => `
                   <span class="bg-slate-100 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded-md" title="${p.descripcion || p.codigo}">
-                    ✓ ${p.nombre}
+                    ${p.nombre}
                   </span>
                 `).join('')}
               </div>
             </div>
           </div>
 
-          <div class="border-t border-slate-100 pt-3 flex justify-between items-center text-xs">
+          <div class="border-t border-slate-100 pt-3 flex flex-wrap gap-2 justify-between items-center text-xs">
             <span class="text-slate-400 text-[11px]">${r.usuarios_count || 0} usuarios asociados</span>
-            ${!isPredet || r.nombre !== 'Administrador' ? `
-              <button onclick="toggleRoleActive(${r.id})" class="text-[11px] font-semibold text-slate-600 hover:text-red-600">
-                ${r.activo ? 'Desactivar Rol' : 'Activar Rol'}
+            <div class="flex items-center gap-2">
+              <button onclick="openCreateUserModalForRole(${r.id}, '${r.nombre.replace(/'/g, "\\'")}')" class="bg-uniblue/10 hover:bg-uniblue hover:text-white text-uniblue font-semibold px-2.5 py-1 rounded-lg transition text-[11px] flex items-center gap-1" title="Crear una cuenta de usuario con este rol para iniciar sesión">
+                <span>Crear Usuario con este Rol</span>
               </button>
-            ` : '<span class="text-[10px] text-slate-400">Protegido</span>'}
+              ${!isPredet || r.nombre !== 'Administrador' ? `
+                <button onclick="toggleRoleActive(${r.id})" class="text-[11px] font-semibold text-slate-500 hover:text-red-600 px-1 py-1">
+                  ${r.activo ? 'Desactivar' : 'Activar'}
+                </button>
+              ` : '<span class="text-[10px] text-slate-400">Protegido</span>'}
+            </div>
           </div>
         </div>
       `;
@@ -356,13 +371,22 @@
   }
 
   async function toggleRoleActive(roleId) {
+    const confirmed = await AppDialog.confirm({
+      title: 'Modificar Estado de Rol',
+      message: '¿Estás seguro de que deseas cambiar el estado activo de este rol en el sistema?',
+      confirmText: 'Sí, cambiar estado',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/auth/roles/${roleId}/toggle-active/`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error al cambiar estado.');
+      AppDialog.toast('Estado del rol actualizado correctamente.', 'success');
       loadRoles();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -423,6 +447,23 @@
     document.getElementById('modalUser').classList.add('hidden');
   }
 
+  function openCreateUserModalForRole(roleId, roleName) {
+    switchTab('users');
+    openCreateUserModal();
+    const sel = document.getElementById('newUserRole');
+    if (sel) {
+      sel.value = roleId;
+    }
+    const cleanRole = roleName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
+    const rand = Math.floor(10 + Math.random() * 90);
+    document.getElementById('newUsername').value = `${cleanRole}_${rand}`;
+    document.getElementById('newFirstName').value = 'Usuario';
+    document.getElementById('newLastName').value = roleName;
+    document.getElementById('newStudentCode').value = `COD-${Math.floor(1000 + Math.random() * 9000)}`;
+    document.getElementById('newEmail').value = `${cleanRole}${rand}@uniputumayo.edu.co`;
+    document.getElementById('newPassword').value = 'clave123';
+  }
+
   function openCreateRoleModal() {
     document.getElementById('modalRole').classList.remove('hidden');
   }
@@ -435,10 +476,21 @@
     const username = document.getElementById('newUsername').value.trim();
     const first_name = document.getElementById('newFirstName').value.trim();
     const last_name = document.getElementById('newLastName').value.trim();
-    const codigo_estudiantil = document.getElementById('newStudentCode').value.trim();
+    const rawCode = document.getElementById('newStudentCode').value.trim();
+    const codigo_estudiantil = rawCode ? rawCode : null;
     const email = document.getElementById('newEmail').value.trim();
-    const rol_id = document.getElementById('newUserRole').value;
+    const rolVal = document.getElementById('newUserRole').value;
+    const rol_id = rolVal ? parseInt(rolVal) : null;
     const password = document.getElementById('newPassword').value;
+
+    const confirmed = await AppDialog.confirm({
+      title: '¿Confirmar Registro de Usuario?',
+      message: `¿Deseas registrar a <b>${first_name} ${last_name}</b> con usuario <b>${username}</b> y documento/cédula <b>${codigo_estudiantil || 'N/A'}</b>?`,
+      confirmText: 'Sí, Registrar',
+      cancelText: 'Revisar Datos',
+      type: 'info'
+    });
+    if (!confirmed) return;
 
     try {
       const res = await Auth.apiFetch('/api/auth/usuarios/', {
@@ -450,16 +502,48 @@
 
       const data = await res.json();
       if (!res.ok) {
-        const msg = JSON.stringify(data);
-        throw new Error(msg);
+        let msg = '';
+        if (typeof data === 'object') {
+          for (const [k, v] of Object.entries(data)) {
+            msg += `• ${k}: ${Array.isArray(v) ? v.join(', ') : v}\n`;
+          }
+        } else {
+          msg = String(data);
+        }
+        throw new Error(msg || 'Error al guardar usuario.');
       }
 
-      alert('¡Usuario creado exitosamente!');
+      const rolNombre = data.rol_detalle ? data.rol_detalle.nombre : 'Usuario';
       closeUserModal();
       document.getElementById('formNewUser').reset();
       loadUsers();
+      loadRoles();
+
+      await AppDialog.alert({
+        title: 'Usuario Registrado Exitosamente',
+        message: `
+          <div class="space-y-3 text-xs">
+            <p class="text-slate-600">Se creó la cuenta en el sistema con los siguientes datos:</p>
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 font-mono space-y-1.5">
+              <div><span class="text-slate-400">Usuario:</span> <b class="text-slate-900">${username}</b></div>
+              <div><span class="text-slate-400">Documento / Cédula:</span> <b class="text-slate-900">${codigo_estudiantil || '(No asignado)'}</b></div>
+              <div><span class="text-slate-400">Rol Asignado:</span> <b class="text-uniblue">${rolNombre}</b></div>
+              <div><span class="text-slate-400">Contraseña:</span> <b class="text-slate-900">${password}</b></div>
+            </div>
+            <p class="text-[11px] text-emerald-800 font-medium bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+              El usuario ya puede iniciar sesión en la plataforma ingresando tanto su <b>Nombre de Usuario</b> como su <b>Cédula o Documento</b>.
+            </p>
+          </div>
+        `,
+        type: 'success',
+        buttonText: 'Aceptar'
+      });
     } catch (err) {
-      alert('Error al crear usuario: ' + err.message);
+      AppDialog.alert({
+        title: 'Error al Registrar Usuario',
+        message: err.message,
+        type: 'error'
+      });
     }
   }
 
@@ -479,14 +563,39 @@
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(JSON.stringify(data));
+      if (!res.ok) {
+        let msg = '';
+        if (typeof data === 'object') {
+          for (const [k, v] of Object.entries(data)) {
+            msg += `• ${k}: ${Array.isArray(v) ? v.join(', ') : v}\n`;
+          }
+        } else {
+          msg = String(data);
+        }
+        throw new Error(msg || 'Error al guardar rol.');
+      }
 
-      alert(`¡Rol configurable "${nombre}" creado con éxito con ${permisos_ids.length} permisos!`);
       closeRoleModal();
       document.getElementById('formNewRole').reset();
-      loadRoles();
+      await loadRoles();
+
+      const wantCreateUser = await AppDialog.confirm({
+        title: 'Rol Guardado Exitosamente',
+        message: `El rol configurable <b>"${nombre}"</b> fue registrado con <b>${permisos_ids.length}</b> permisos autorizados.<br><br>¿Deseas registrar un nuevo usuario con este rol ahora mismo?`,
+        confirmText: 'Registrar Usuario',
+        cancelText: 'Cerrar',
+        type: 'success'
+      });
+
+      if (wantCreateUser) {
+        openCreateUserModalForRole(data.id, nombre);
+      }
     } catch (err) {
-      alert('Error al crear rol: ' + err.message);
+      AppDialog.alert({
+        title: 'Error al Crear Rol',
+        message: err.message,
+        type: 'error'
+      });
     }
   }
 </script>

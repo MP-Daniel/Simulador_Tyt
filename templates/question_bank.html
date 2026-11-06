@@ -13,26 +13,21 @@
         <span class="text-uniblue font-semibold">Banco de Preguntas</span>
       </div>
       <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Banco Central de Reactivos Saber TyT</h1>
-      <p class="text-xs text-slate-500">Reactivos organizados por competencia (Sec 2.3) y almacenados en MySQL.</p>
+      <p class="text-xs text-slate-500">Reactivos organizados por competencia (Sec 2.3) del programa académico.</p>
     </div>
     <div class="flex flex-wrap gap-2">
+      <a href="/api/banco/descargar-plantilla/" download="plantilla_oficial_preguntas_saber_tyt.xlsx" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-2xs flex items-center gap-1.5 border border-slate-200">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Plantilla Excel</span>
+      </a>
       <button onclick="openQuestionModal()" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
         <span>+</span> <span>Nueva Pregunta</span>
       </button>
       <a href="/admin-panel/importar-excel/" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
-        <span>📥</span> <span>Carga Masiva Excel</span>
+        <span>Carga Masiva Excel</span>
       </a>
     </div>
   </div>
-      <div class="flex gap-2">
-        <button onclick="openQuestionModal()" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-          <span>+</span> <span>Nueva Pregunta</span>
-        </button>
-        <a href="/admin-panel/importar-excel/" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-          <span>📥</span> <span>Carga Masiva Excel</span>
-        </a>
-      </div>
-    </div>
 
     <!-- Filtros y Búsqueda -->
     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
@@ -71,7 +66,7 @@
             </tr>
           </thead>
           <tbody id="questionsTbody" class="divide-y divide-slate-100">
-            <tr><td colspan="8" class="text-center py-6 text-slate-400">Cargando reactivos desde MySQL...</td></tr>
+            <tr><td colspan="8" class="text-center py-6 text-slate-400">Cargando reactivos del banco...</td></tr>
           </tbody>
         </table>
       </div>
@@ -238,12 +233,22 @@
   }
 
   async function toggleQuestionActive(id) {
+    const confirmed = await AppDialog.confirm({
+      title: '¿Cambiar Estado de la Pregunta?',
+      message: '¿Deseas activar o desactivar la disponibilidad de esta pregunta en los cuestionarios?',
+      confirmText: 'Sí, cambiar',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch(`/api/banco/preguntas/${id}/toggle-active/`, { method: 'POST' });
       if (!res.ok) throw new Error('Error al cambiar estado.');
+      AppDialog.toast('Estado de la pregunta actualizado', 'success');
       loadQuestions();
     } catch (e) {
-      alert(e.message);
+      AppDialog.alert({ title: 'Error', message: e.message, type: 'error' });
     }
   }
 
@@ -326,6 +331,15 @@
       ];
     }
 
+    const confirmed = await AppDialog.confirm({
+      title: '¿Guardar Pregunta en el Banco?',
+      message: `¿Deseas registrar este nuevo reactivo de <b>${categoria}</b> en el banco central de preguntas?`,
+      confirmText: 'Guardar Pregunta',
+      cancelText: 'Revisar',
+      type: 'info'
+    });
+    if (!confirmed) return;
+
     try {
       const res = await Auth.apiFetch('/api/banco/preguntas/', {
         method: 'POST',
@@ -337,12 +351,16 @@
       const data = await res.json();
       if (!res.ok) throw new Error(JSON.stringify(data));
 
-      alert('¡Pregunta guardada exitosamente en el banco!');
+      AppDialog.toast('Pregunta guardada exitosamente en el banco central', 'success');
       closeQuestionModal();
       document.getElementById('formQuestion').reset();
       loadQuestions();
     } catch (err) {
-      alert('Error al guardar pregunta: ' + err.message);
+      AppDialog.alert({
+        title: 'Error al Guardar Pregunta',
+        message: 'No se pudo guardar la pregunta: ' + err.message,
+        type: 'error'
+      });
     }
   }
 </script>
