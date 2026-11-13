@@ -5,25 +5,25 @@
 {% block content %}
 <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
   
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-slate-200">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200">
     <div>
-      <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 mb-1">
-        <span>UniPutumayo</span>
-        <span>/</span>
-        <span class="text-uniblue font-semibold">Banco de Preguntas</span>
+      <div class="text-xs text-slate-500 font-semibold flex items-center gap-1.5 mb-1">
+        <a href="/admin-panel/" class="hover:underline">Inicio</a>
+        <span class="text-slate-400">/</span>
+        <span class="text-uniblue font-bold">Banco de Preguntas</span>
       </div>
-      <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Banco Central de Reactivos Saber TyT</h1>
-      <p class="text-xs text-slate-500">Reactivos organizados por competencia (Sec 2.3) del programa académico.</p>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Banco Central de Reactivos Saber TyT</h1>
+      <p class="text-sm text-slate-600 mt-0.5">Reactivos organizados por competencia y área temática del programa académico.</p>
     </div>
-    <div class="flex flex-wrap gap-2">
-      <a href="/api/banco/descargar-plantilla/" download="plantilla_oficial_preguntas_saber_tyt.xlsx" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-2xs flex items-center gap-1.5 border border-slate-200">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    <div class="flex flex-wrap gap-2.5">
+      <a href="/api/banco/descargar-plantilla/" download="plantilla_oficial_preguntas_saber_tyt.xlsx" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-2xs flex items-center gap-2 border border-slate-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <span>Plantilla Excel</span>
       </a>
-      <button onclick="openQuestionModal()" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
-        <span>+</span> <span>Nueva Pregunta</span>
+      <button onclick="openQuestionModal()" class="bg-unigreen hover:bg-unigreen-dark text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-xs flex items-center gap-1.5">
+        <span class="text-base leading-none">+</span> <span>Nueva Pregunta</span>
       </button>
-      <a href="/admin-panel/importar-excel/" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-xs flex items-center gap-1.5">
+      <a href="/admin-panel/importar-excel/" class="bg-uniaccent hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-xs flex items-center gap-1.5">
         <span>Carga Masiva Excel</span>
       </a>
     </div>
@@ -111,8 +111,8 @@
       <!-- Opciones y Respuesta Correcta -->
       <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
         <div class="flex justify-between items-center">
-          <label class="font-bold text-slate-700">Alternativas y Respuesta Correcta (Regla R05) *</label>
-          <span class="text-[10px] text-slate-400">Selecciona el radio botón de la opción correcta</span>
+          <label class="font-bold text-slate-700">Alternativas y Respuesta Correcta *</label>
+          <span class="text-xs text-slate-500 font-medium">Selecciona el radio botón de la opción correcta</span>
         </div>
 
         <div id="optionsInputsArea" class="space-y-2">
@@ -122,7 +122,7 @@
 
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Puntaje Base (R02 > 0) *</label>
+          <label class="block font-bold text-slate-700 mb-1">Puntaje Base *</label>
           <input type="number" step="0.1" min="0.5" id="modalPoints" value="2.50" required class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
         </div>
         <div>
@@ -192,23 +192,23 @@
       const corrLetter = corrOpt ? corrOpt.letra : '-';
 
       return `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="py-3 px-4 font-mono font-bold text-slate-400">#${q.id}</td>
-          <td class="py-3 px-4 font-bold text-uniblue">${q.categoria_nombre}</td>
-          <td class="py-3 px-4 text-slate-600 font-mono text-[11px]">${q.tipo}</td>
-          <td class="py-3 px-4 text-slate-900 font-medium">
-            ${q.enunciado}
-            ${q.texto_base ? `<div class="text-[10px] text-slate-400 italic line-clamp-1">Contexto: "${q.texto_base}"</div>` : ''}
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="py-3.5 px-4 font-mono font-bold text-slate-500 text-xs">#${q.id}</td>
+          <td class="py-3.5 px-4 font-bold text-sky-800 text-xs">${q.categoria_nombre}</td>
+          <td class="py-3.5 px-4 text-slate-700 font-mono text-xs font-semibold">${q.tipo}</td>
+          <td class="py-3.5 px-4 text-slate-900 font-medium">
+            <div class="text-sm font-semibold text-slate-900">${q.enunciado}</div>
+            ${q.texto_base ? `<div class="text-xs text-slate-600 italic line-clamp-1 mt-0.5">Contexto: "${q.texto_base}"</div>` : ''}
           </td>
-          <td class="py-3 px-4 text-center font-bold text-emerald-700 bg-emerald-50/50 rounded-lg font-mono">${corrLetter}</td>
-          <td class="py-3 px-4 font-mono">${parseFloat(q.puntaje).toFixed(2)}</td>
-          <td class="py-3 px-4">
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${q.activo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+          <td class="py-3.5 px-4 text-center font-bold text-emerald-800 bg-emerald-50 rounded-lg font-mono text-xs border border-emerald-200">${corrLetter}</td>
+          <td class="py-3.5 px-4 font-mono text-xs font-bold text-slate-700">${parseFloat(q.puntaje).toFixed(2)}</td>
+          <td class="py-3.5 px-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full border ${q.activo ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-rose-100 text-rose-900 border-rose-300'}">
               ${q.activo ? 'Activa' : 'Inactiva'}
             </span>
           </td>
-          <td class="py-3 px-4 text-center">
-            <button onclick="toggleQuestionActive(${q.id})" class="text-[11px] ${q.activo ? 'text-red-500 hover:underline' : 'text-emerald-600 hover:underline'}">
+          <td class="py-3.5 px-4 text-center">
+            <button onclick="toggleQuestionActive(${q.id})" class="text-xs font-bold px-3 py-1.5 rounded-xl transition border shadow-2xs ${q.activo ? 'text-rose-800 bg-rose-50 hover:bg-rose-100 border-rose-300' : 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-300'}">
               ${q.activo ? 'Desactivar' : 'Activar'}
             </button>
           </td>

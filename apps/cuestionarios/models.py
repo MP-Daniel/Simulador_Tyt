@@ -18,6 +18,17 @@ class Cuestionario(models.Model):
 
     nombre = models.CharField(max_length=200, help_text="Título o nombre del simulacro")
     descripcion = models.TextField(blank=True, help_text="Instrucciones y objetivos del examen")
+    asignatura = models.CharField(
+        max_length=150,
+        default='Saber TyT - General',
+        help_text="Asignatura o temática del cuestionario"
+    )
+    clave_acceso = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Contraseña opcional de acceso a la evaluación"
+    )
     fecha_apertura = models.DateTimeField(help_text="Fecha y hora en que se habilita la presentación (R01)")
     fecha_cierre = models.DateTimeField(help_text="Fecha y hora límite de presentación (R01)")
     tiempo_limite_minutos = models.PositiveIntegerField(
@@ -130,13 +141,22 @@ class Cuestionario(models.Model):
 
         return True, "Cuestionario disponible para presentar."
 
-    def puede_iniciar_estudiante(self, usuario):
+    @property
+    def tiene_clave(self):
+        return bool(self.clave_acceso and self.clave_acceso.strip())
+
+    def puede_iniciar_estudiante(self, usuario, clave=None):
         """
         Verifica desde el servidor si el estudiante puede iniciar un nuevo intento (Sec 2.4 y R08).
+        Valida disponibilidad temporal, contraseña si aplica y cupo de intentos permitidos.
         """
         disponible, motivo = self.esta_disponible_ahora()
         if not disponible:
             return False, motivo
+
+        if self.tiene_clave:
+            if not clave or str(clave).strip() != self.clave_acceso.strip():
+                return False, "La evaluación requiere contraseña de acceso o la clave suministrada es incorrecta."
 
         from evaluaciones.models import Intento
         intentos_realizados = Intento.objects.filter(

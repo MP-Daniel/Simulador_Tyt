@@ -116,7 +116,8 @@ print("✓ 9. Protección de Sandbox verificada: Estudiante recibió 403 Forbidd
 
 # 10. Estudiante matriculado inicia examen oficial (Sec 2.5)
 res_inicio = client.post('/api/evaluaciones/iniciar/', {
-    'cuestionario_id': cuestionario.id
+    'cuestionario_id': cuestionario.id,
+    'clave_acceso': cuestionario.clave_acceso
 }, format='json')
 assert res_inicio.status_code == 200, f"Error iniciando examen: {res_inicio.data}"
 inicio_data = res_inicio.data

@@ -33,6 +33,12 @@ class Pregunta(models.Model):
         ('VERDADERO_FALSO', 'Verdadero o Falso'),
     ]
 
+    DIFICULTAD_CHOICES = [
+        ('BAJA', 'Baja'),
+        ('MEDIA', 'Media'),
+        ('ALTA', 'Alta'),
+    ]
+
     categoria = models.ForeignKey(
         Categoria,
         on_delete=models.PROTECT,
@@ -40,6 +46,12 @@ class Pregunta(models.Model):
         help_text="Competencia de la prueba Saber TyT"
     )
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='MULTIPLE')
+    nivel_dificultad = models.CharField(
+        max_length=10,
+        choices=DIFICULTAD_CHOICES,
+        default='MEDIA',
+        help_text="Nivel de dificultad estimado"
+    )
     texto_base = models.TextField(blank=True, null=True, help_text="Contexto previo, caso o lectura introductoria")
     enunciado = models.TextField(help_text="Enunciado de la pregunta")
     retroalimentacion = models.TextField(blank=True, help_text="Justificación didáctica de la respuesta correcta")

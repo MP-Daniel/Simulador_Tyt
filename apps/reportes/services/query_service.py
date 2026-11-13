@@ -90,9 +90,13 @@ class QueryService:
         periodo_id = filtros.get('periodo_id')
         curso_id = filtros.get('curso_id')
         categoria_id = filtros.get('categoria_id')
+        cuestionario_id = filtros.get('cuestionario_id')
         estudiante_id = filtros.get('estudiante_id')
         busqueda = filtros.get('busqueda')
         orden = filtros.get('orden', '-fecha_inicio')
+
+        if cuestionario_id:
+            qs = qs.filter(cuestionario_id=cuestionario_id)
 
         if anio:
             qs = qs.filter(Q(curso__periodo__anio=anio) | Q(cuestionario__fecha_apertura__year=anio))

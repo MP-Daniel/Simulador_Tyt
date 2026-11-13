@@ -11,27 +11,27 @@
     <div class="flex items-center gap-3">
       <img src="/static/img/logo_uniputumayo.png" alt="UniPutumayo" class="h-8 sm:h-9 w-auto object-contain">
       <div class="border-l border-slate-300 pl-3 hidden sm:block">
-        <div id="examHeaderTitle" class="font-extrabold text-xs text-uniblue uppercase">Simulador Saber TyT</div>
-        <div class="text-[9px] text-slate-500" id="examHeaderSub">Evaluación en progreso</div>
+        <div id="examHeaderTitle" class="font-extrabold text-xs sm:text-sm text-uniblue uppercase tracking-wider">Simulador Saber TyT</div>
+        <div class="text-xs text-slate-500 font-medium" id="examHeaderSub">Evaluación en progreso</div>
       </div>
     </div>
 
     <!-- Temporizador Regresivo Flotante -->
-    <div class="flex items-center gap-2 bg-amber-50 border border-amber-300 px-3.5 py-1.5 rounded-2xl shadow-inner">
-      <span class="text-amber-600 text-sm">⏱</span>
+    <div class="flex items-center gap-2.5 bg-amber-50 border border-amber-300 px-4 py-2 rounded-2xl shadow-inner">
+      <svg class="w-5 h-5 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       <div>
-        <div class="text-[9px] uppercase tracking-wider font-bold text-amber-700">Tiempo Restante</div>
-        <div id="examTimer" class="font-mono font-black text-amber-900 text-sm md:text-base leading-none">--:--</div>
+        <div class="text-xs uppercase tracking-wider font-bold text-amber-800">Tiempo Restante</div>
+        <div id="examTimer" class="font-mono font-black text-amber-950 text-base md:text-lg leading-none mt-0.5">--:--</div>
       </div>
     </div>
 
     <!-- Usuario y Finalizar -->
     <div class="flex items-center gap-3">
       <div class="text-right hidden md:block">
-        <div id="examStudentName" class="font-bold text-xs text-slate-800">Estudiante</div>
-        <div class="text-[10px] text-emerald-600 font-semibold" id="examAttemptBadge">Intento en curso</div>
+        <div id="examStudentName" class="font-bold text-sm text-slate-900">Estudiante</div>
+        <div class="text-xs text-emerald-700 font-semibold" id="examAttemptBadge">Intento en curso</div>
       </div>
-      <button onclick="openFinishModal()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm">
+      <button onclick="openFinishModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm transition shadow-2xs">
         Finalizar Examen
       </button>
     </div>
@@ -74,8 +74,8 @@
 
       <!-- Pregunta Activa -->
       <div>
-        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-          Reactivo <span id="currentQuestionNum" class="text-slate-700">1</span> de <span id="totalQuestionsNum">5</span>
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          Reactivo <span id="currentQuestionNum" class="text-slate-900 font-extrabold">1</span> de <span id="totalQuestionsNum" class="text-slate-900 font-extrabold">5</span>
         </div>
 
         <!-- Texto Base Opcional -->
@@ -111,8 +111,8 @@
     <!-- Columna Lateral: Panel de Navegación (25%) -->
     <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4">
       <div>
-        <h3 class="font-bold text-sm text-slate-900">Navegación del Examen</h3>
-        <p class="text-[11px] text-slate-500">Haz clic en un reactivo para saltar directamente.</p>
+        <h3 class="font-bold text-base text-slate-900">Navegación del Examen</h3>
+        <p class="text-xs text-slate-600 mt-0.5">Haz clic en un reactivo para saltar directamente.</p>
       </div>
 
       <!-- Cuadrícula de Preguntas -->
@@ -120,7 +120,7 @@
       </div>
 
       <!-- Leyenda de Estados -->
-      <div class="pt-4 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-600">
+      <div class="pt-4 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
         <div class="flex items-center gap-2">
           <span class="w-3.5 h-3.5 rounded-md bg-unigreen inline-block"></span> Respondida
         </div>
@@ -154,8 +154,8 @@
     <p id="modalSummaryText" class="text-xs text-slate-600">
       Verificando respuestas...
     </p>
-    <div class="bg-slate-50 p-3 rounded-xl text-[11px] text-slate-500 text-left">
-      Las preguntas no contestadas quedarán guardadas como omitidas con puntaje 0.00 (Regla R09).
+    <div class="bg-slate-50 p-3.5 rounded-xl text-xs text-slate-600 text-left border border-slate-200">
+      Las preguntas no contestadas se registrarán con calificación de 0.00 puntos.
     </div>
     <div class="flex gap-2 pt-2">
       <button onclick="closeFinishModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
@@ -193,16 +193,40 @@
   async function initializeExam() {
     const urlParams = new URLSearchParams(window.location.search);
     const cuestionarioId = urlParams.get('cuestionario_id') || sessionStorage.getItem('active_cuestionario_id') || 1;
+    let clave = sessionStorage.getItem(`active_quiz_pass_${cuestionarioId}`) || null;
 
     try {
-      const res = await Auth.apiFetch('/api/evaluaciones/iniciar/', {
+      let res = await Auth.apiFetch('/api/evaluaciones/iniciar/', {
         method: 'POST',
-        body: JSON.stringify({ cuestionario_id: cuestionarioId })
+        body: JSON.stringify({ cuestionario_id: cuestionarioId, clave_acceso: clave })
       });
 
-      const data = await res.json();
+      let data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || data.detail || 'No se pudo iniciar el examen.');
+        if (data.codigo === 'PASSWORD_REQUIRED' || data.requiere_clave) {
+          const promptClave = await AppDialog.prompt({
+            title: 'Contraseña Requerida',
+            message: data.detail || 'Esta evaluación requiere contraseña de acceso configurada por el docente:',
+            placeholder: 'Ingresa la contraseña del examen...',
+            confirmText: 'Validar e Iniciar',
+            inputType: 'password'
+          });
+          if (!promptClave) {
+            window.location.href = '/estudiante/';
+            return;
+          }
+          clave = promptClave;
+          sessionStorage.setItem(`active_quiz_pass_${cuestionarioId}`, clave);
+
+          res = await Auth.apiFetch('/api/evaluaciones/iniciar/', {
+            method: 'POST',
+            body: JSON.stringify({ cuestionario_id: cuestionarioId, clave_acceso: clave })
+          });
+          data = await res.json();
+          if (!res.ok) throw new Error(data.error || data.detail || 'Contraseña incorrecta.');
+        } else {
+          throw new Error(data.error || data.detail || 'No se pudo iniciar el examen.');
+        }
       }
 
       currentIntentoId = data.intento_id;

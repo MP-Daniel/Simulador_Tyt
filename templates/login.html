@@ -3,14 +3,15 @@
 {% block title %}Iniciar Sesión - Simulador Saber TyT UniPutumayo{% endblock %}
 
 {% block header %}
-<!-- Cabecera simplificada para Login -->
-<div class="py-4 px-6 bg-white border-b border-slate-200 flex justify-between items-center max-w-7xl mx-auto w-full">
+<!-- Cabecera limpia para Login -->
+<div class="py-3 px-6 bg-white border-b border-slate-200 flex justify-between items-center max-w-7xl mx-auto w-full">
   <div class="flex items-center gap-3">
-    <img src="/static/img/logo_uniputumayo.png" alt="Logo UniPutumayo" class="h-10 sm:h-12 w-auto object-contain">
+    <img src="/static/img/logo_uniputumayo.png" alt="Logo UniPutumayo" class="h-10 sm:h-11 w-auto object-contain">
+    <div class="border-l border-slate-300 pl-3 hidden sm:block">
+      <div class="font-extrabold text-sm text-uniblue uppercase tracking-wider">Simulador Saber TyT</div>
+      <div class="text-xs font-semibold text-slate-500">Institución Universitaria del Putumayo</div>
+    </div>
   </div>
-  <a href="/vistas/" class="text-xs text-uniblue font-semibold hover:underline">
-    Directorio de Pantallas →
-  </a>
 </div>
 {% endblock %}
 
@@ -24,11 +25,8 @@
     <!-- Hero del Login -->
     <div class="bg-gradient-to-r from-uniblue to-uniblue-dark p-6 text-white text-center relative overflow-hidden">
       <div class="relative z-10">
-        <span class="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm inline-block mb-2">
-          Seguridad JWT • Electiva III
-        </span>
-        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Acceso Seguro al Simulador</h2>
-        <p class="text-xs text-slate-200 mt-1">Plataforma de Evaluación Saber TyT - UniPutumayo</p>
+        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Acceso al Simulador</h2>
+        <p class="text-xs text-slate-200 mt-1">Plataforma de Evaluación Saber TyT • UniPutumayo</p>
       </div>
       <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none"></div>
     </div>
@@ -38,53 +36,50 @@
       <span id="errorMessage">Credenciales incorrectas o cuenta desactivada.</span>
     </div>
 
-    <!-- Banner de Sesión Activa (para cambiar de rol fácilmente) -->
+    <!-- Banner de Sesión Activa -->
     <div id="sessionBanner" class="hidden m-6 mb-0 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
       <div>
         <span class="text-slate-500">Sesión actual:</span> <b id="sessionUserName" class="text-slate-800"></b>
       </div>
       <div class="flex items-center gap-2">
-        <a id="sessionPanelLink" href="/admin-panel/" class="bg-uniblue text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition">Ir a mi Panel</a>
-        <button onclick="Auth.logout()" class="text-rose-600 hover:underline text-[11px] font-semibold">Cerrar sesión</button>
+        <a id="sessionPanelLink" href="/admin-panel/" class="bg-uniblue text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">Ir a mi Panel</a>
+        <button onclick="Auth.logout()" class="text-rose-600 hover:underline text-xs font-semibold">Cerrar sesión</button>
       </div>
     </div>
 
     <!-- Formulario de Login -->
     <form id="loginForm" class="p-6 sm:p-8 space-y-4" onsubmit="handleLoginSubmit(event)">
       <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-          Usuario, Cédula o Documento <span class="text-red-500">*</span>
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider mb-1">
+          Usuario o Documento <span class="text-red-500">*</span>
         </label>
         <input 
           type="text" 
           id="usernameInput" 
           required 
-          value="admin"
-          placeholder="Ej. admin, 1004123456 o estudiante1" 
+          placeholder="Ingresa tu usuario o documento" 
           class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-uniblue focus:border-transparent text-sm text-slate-800"
         />
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider mb-1">
           Contraseña <span class="text-red-500">*</span>
         </label>
         <input 
           type="password" 
           id="passwordInput" 
           required 
-          value="admin123"
           placeholder="Ingresa tu contraseña" 
           class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-uniblue focus:border-transparent text-sm text-slate-800"
         />
       </div>
 
-      <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+      <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
         <label class="flex items-center gap-1.5 cursor-pointer">
           <input type="checkbox" checked class="w-4 h-4 text-uniblue rounded border-slate-300">
           <span>Recordar sesión</span>
         </label>
-        <span class="text-[11px] text-unigreen-dark font-semibold">● Autenticación JWT</span>
       </div>
 
       <button 
@@ -92,32 +87,28 @@
         id="submitBtn"
         class="w-full bg-uniblue hover:bg-uniblue-dark text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 group text-sm mt-2"
       >
-        <span id="btnText">Iniciar Sesión con JWT</span>
+        <span id="btnText">Iniciar Sesión</span>
         <span class="group-hover:translate-x-1 transition-transform">→</span>
       </button>
     </form>
 
     <!-- Credenciales de Acceso Rápido por Rol -->
-    <div class="bg-slate-50 p-5 border-t border-slate-200">
-      <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
-        Acceso Rápido por Rol (Demostración)
+    <div class="bg-slate-50 p-4 border-t border-slate-200">
+      <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
+        Accesos rápidos de prueba
       </div>
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <button type="button" onclick="loginDemo('admin', 'admin123')" class="p-2.5 bg-white hover:bg-uniblue/10 border border-slate-200 rounded-xl text-left transition shadow-2xs">
-          <div class="font-bold text-uniblue">Administrador</div>
-          <div class="text-[10px] text-slate-500">admin / admin123</div>
+      <div class="grid grid-cols-3 gap-2 text-xs">
+        <button type="button" onclick="loginDemo('admin', 'admin123')" class="p-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-center transition shadow-2xs">
+          <div class="font-bold text-sky-800 text-xs sm:text-sm">Admin</div>
+          <div class="text-xs text-slate-500 font-mono mt-0.5">admin123</div>
         </button>
-        <button type="button" onclick="loginDemo('docente', 'docente123')" class="p-2.5 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl text-left transition shadow-2xs">
-          <div class="font-bold text-amber-700">Docente Evaluador</div>
-          <div class="text-[10px] text-slate-500">docente / docente123</div>
+        <button type="button" onclick="loginDemo('docente', 'docente123')" class="p-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-center transition shadow-2xs">
+          <div class="font-bold text-amber-800 text-xs sm:text-sm">Docente</div>
+          <div class="text-xs text-slate-500 font-mono mt-0.5">docente123</div>
         </button>
-        <button type="button" onclick="loginDemo('estudiante1', 'estudiante123')" class="p-2.5 bg-white hover:bg-emerald-50 border border-slate-200 rounded-xl text-left transition shadow-2xs">
-          <div class="font-bold text-emerald-700">Estudiante 1</div>
-          <div class="text-[10px] text-slate-500">estudiante1 / estudiante123</div>
-        </button>
-        <button type="button" onclick="loginDemo('inactivo', 'inactivo123')" class="p-2.5 bg-white hover:bg-rose-50 border border-slate-200 rounded-xl text-left transition shadow-2xs">
-          <div class="font-bold text-rose-600">Cuenta Inactiva</div>
-          <div class="text-[10px] text-slate-500">inactivo / inactivo123</div>
+        <button type="button" onclick="loginDemo('estudiante1', 'estudiante123')" class="p-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-center transition shadow-2xs">
+          <div class="font-bold text-emerald-800 text-xs sm:text-sm">Estudiante</div>
+          <div class="text-xs text-slate-500 font-mono mt-0.5">estudiante123</div>
         </button>
       </div>
     </div>
@@ -164,7 +155,7 @@
       alertMsg.innerText = err.message || 'Error al iniciar sesión.';
       alertBox.classList.remove('hidden');
       btn.disabled = false;
-      btnText.innerText = 'Iniciar Sesión con JWT';
+      btnText.innerText = 'Iniciar Sesión';
     }
   }
 

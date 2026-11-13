@@ -14,8 +14,8 @@
         extend: {
           colors: {
             uniblue: { DEFAULT: '#1B6C8C', dark: '#124B62', light: '#E8F3F7' },
-            unigreen: { DEFAULT: '#8DBF21', dark: '#739D1A', light: '#F4F9E9' },
-            uniaccent: { DEFAULT: '#C67D00', dark: '#9E6400', light: '#FFF8EB' },
+            unigreen: { DEFAULT: '#1E824C', dark: '#156535', light: '#EDF7F1' },
+            uniaccent: { DEFAULT: '#B86F00', dark: '#8C5400', light: '#FFF8EB' },
             unidark: { DEFAULT: '#0F172A', light: '#1E293B', card: '#162032' }
           }
         }
@@ -34,29 +34,16 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
   </style>
 
-  <!-- Script Central de Autenticación JWT -->
+  <!-- Script Central de Autenticación -->
   <script src="/static/js/auth.js"></script>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-uniblue selection:text-white">
-
-  <!-- Topbar Institucional gov.co -->
-  <div class="bg-[#004884] text-white text-[11px] py-1 px-4 flex justify-between items-center shadow-sm z-50 relative">
-    <div class="flex items-center gap-2">
-      <span class="font-bold tracking-wider">gov.co</span>
-      <span class="text-slate-300">|</span>
-      <span>República de Colombia • Institución Universitaria del Putumayo</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="hidden sm:inline-block text-[10px] bg-white/10 px-2 py-0.5 rounded font-mono">Saber TyT 2026</span>
-      <a href="/vistas/" class="hover:underline text-slate-200 text-[11px]">Mapa del Sistema</a>
-    </div>
-  </div>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden selection:bg-uniblue selection:text-white">
 
   {% block header %}
   <!-- Header Principal con Logo Oficial -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex justify-between items-center">
+  <header class="bg-white border-b border-slate-200 shrink-0 h-16 z-40 shadow-xs">
+    <div class="w-full h-full px-4 sm:px-6 lg:px-8 flex justify-between items-center">
       <div class="flex items-center gap-3">
         <!-- Botón Móvil para Abrir Menú Lateral -->
         {% block mobile_toggle %}
@@ -68,10 +55,9 @@
         {% endblock %}
 
         <a href="/" class="flex items-center gap-3">
-          <img src="/static/img/logo_uniputumayo.png" alt="Logo UniPutumayo" class="h-10 sm:h-11 w-auto object-contain">
+          <img src="/static/img/logo_uniputumayo.png" alt="Logo UniPutumayo" class="h-9 sm:h-10 w-auto object-contain">
           <div class="border-l border-slate-300 pl-3 hidden sm:block">
             <div class="font-extrabold text-sm text-uniblue uppercase tracking-wider">Simulador Saber TyT</div>
-            <div class="text-[9px] font-semibold text-slate-500 uppercase tracking-widest">Ingeniería de Sistemas • Unidad 2</div>
           </div>
         </a>
       </div>
@@ -79,17 +65,17 @@
       <!-- Menú de Usuario Autenticado -->
       <div id="navUserSection" class="flex items-center gap-3">
         <div class="text-right hidden sm:block">
-          <div id="navUserName" class="font-bold text-xs text-slate-800">Cargando...</div>
-          <div id="navUserRoleBadge" class="text-[10px] inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider bg-slate-100 text-slate-600">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+          <div id="navUserName" class="font-bold text-sm text-slate-900">Cargando...</div>
+          <div id="navUserRoleBadge" class="text-xs inline-flex items-center gap-1.5 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300">
+            <span class="w-2 h-2 rounded-full bg-slate-500"></span>
             <span id="navUserRole">Rol</span>
           </div>
         </div>
-        <div id="navUserAvatar" class="w-9 h-9 rounded-xl bg-uniblue text-white font-bold text-xs flex items-center justify-center shadow-sm">
+        <div id="navUserAvatar" class="w-10 h-10 rounded-xl bg-uniblue text-white font-bold text-sm flex items-center justify-center shadow-sm">
           U
         </div>
-        <button onclick="Auth.logout()" title="Cerrar sesión" class="px-3 py-1.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition text-xs font-semibold flex items-center gap-1.5 border border-slate-200">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <button onclick="Auth.logout()" title="Cerrar sesión" class="px-3.5 py-2 rounded-xl text-slate-600 hover:text-rose-700 hover:bg-rose-50 transition text-xs font-bold flex items-center gap-1.5 border border-slate-300 shadow-2xs">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           <span>Salir</span>
         </button>
       </div>
@@ -98,52 +84,33 @@
   {% endblock %}
 
   <!-- Single Dashboard Shell: Layout Unificado con Sidebar Persistente -->
-  <div class="flex-grow flex w-full relative min-h-[calc(100vh-100px)]">
+  <div class="flex-1 flex w-full overflow-hidden relative">
     
     {% block sidebar %}
     <!-- Backdrop para móvil -->
     <div id="sidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden md:hidden transition-opacity"></div>
 
     <!-- SIDEBAR PERSISTENTE (Izquierda, fija en desktop) -->
-    <aside id="mainSidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 border-r border-slate-800 z-50 fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out custom-scrollbar overflow-y-auto">
-      <div class="p-4 space-y-6">
+    <aside id="mainSidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 border-r border-slate-800 z-50 md:z-20 fixed md:static inset-y-0 md:inset-auto left-0 md:left-auto md:h-full transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out custom-scrollbar overflow-y-auto">
+      <div class="p-4 space-y-4">
         
-        <!-- Encabezado del Menú Lateral -->
-        <div class="flex items-center justify-between px-2 pt-1">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-uniblue to-[#124B62] flex items-center justify-center font-bold text-white shadow-sm">
-              U
-            </div>
-            <div>
-              <div class="font-extrabold text-xs text-white uppercase tracking-wider">UniPutumayo</div>
-              <div class="text-[10px] text-slate-400 font-medium">Simulador Saber TyT</div>
-            </div>
-          </div>
-          <!-- Botón Cerrar en Móvil -->
-          <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
+        <!-- Botón Cerrar en Móvil (Visible solo en pantallas pequeñas) -->
+        <div class="flex md:hidden items-center justify-between px-2 pt-1 pb-2 border-b border-slate-800">
+          <span class="text-xs font-bold text-white uppercase tracking-wider">Menú Principal</span>
+          <button onclick="toggleMobileSidebar()" class="text-slate-400 hover:text-white p-1">
             ✕
           </button>
         </div>
 
-        <!-- Tarjeta de Usuario Activo -->
-        <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3 text-xs">
-          <div class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Usuario Conectado</div>
-          <div id="sideUserName" class="font-bold text-white truncate text-sm">Cargando...</div>
-          <div id="sideUserRoleBadge" class="mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-semibold bg-uniblue/30 text-sky-300 border border-uniblue/40">
-            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-            <span id="sideUserRole">Identificando...</span>
-          </div>
-        </div>
-
         <!-- MENÚ DINÁMICO POR ROL (Inyectado por JavaScript) -->
         <div class="space-y-1">
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
-            Navegación del Sistema
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-2 hidden md:block border-b border-slate-800/80 pb-2">
+            Navegación
           </div>
-          <nav id="dynamicSidebarNav" class="space-y-1 text-xs">
+          <nav id="dynamicSidebarNav" class="space-y-1 text-sm">
             <!-- Enlaces dinámicos según el Rol -->
             <div class="px-3 py-4 text-center text-slate-500 text-xs">
-              Cargando navegación autorizada...
+              Cargando menú...
             </div>
           </nav>
         </div>
@@ -161,18 +128,20 @@
     {% endblock %}
 
     <!-- ÁREA DE CONTENIDO (Derecha) -->
-    <main class="flex-grow flex flex-col min-w-0 w-full overflow-x-hidden">
-      {% block content %}{% endblock %}
+    <main class="flex-1 flex flex-col justify-between min-w-0 w-full overflow-y-auto custom-scrollbar">
+      <div class="flex-grow">
+        {% block content %}{% endblock %}
+      </div>
+
+      <!-- Footer Institucional -->
+      <footer class="bg-slate-900 text-slate-400 py-4 border-t border-slate-800 text-xs shrink-0">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+          © 2026 Institución Universitaria del Putumayo • Programa de Ingeniería de Sistemas
+        </div>
+      </footer>
     </main>
 
   </div>
-
-  <!-- Footer Institucional -->
-  <footer class="bg-slate-900 text-slate-400 py-4 border-t border-slate-800 text-xs z-30 relative">
-    <div class="max-w-7xl mx-auto px-4 text-center">
-      © 2026 Institución Universitaria del Putumayo • Programa de Ingeniería de Sistemas
-    </div>
-  </footer>
 
   <!-- SCRIPT CENTRAL DE ROL Y RENDERIZADO DEL SIDEBAR PERSISTENTE -->
   <script>
@@ -193,15 +162,15 @@
 
     function getSidebarSvg(tipo) {
       const svgs = {
-        dashboard: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>',
-        users: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>',
-        questions: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-        import: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>',
-        quiz: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
-        reports: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
-        results: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
-        exam: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>',
-        history: '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        dashboard: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>',
+        users: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>',
+        questions: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        import: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>',
+        quiz: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+        reports: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+        results: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
+        exam: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>',
+        history: '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
       };
       return svgs[tipo] || '';
     }
@@ -254,21 +223,18 @@
             href: '/admin-panel/importar-excel/',
             label: 'Importar Excel',
             icon: 'import',
-            badge: 'R10',
             active: (path.startsWith('/admin-panel/importar-excel'))
           },
           {
             href: '/admin-panel/cuestionarios/crear/',
             label: 'Configurar Cuestionarios',
             icon: 'quiz',
-            badge: 'R01-R04',
             active: (path.startsWith('/admin-panel/cuestionarios/crear'))
           },
           {
             href: '/admin-panel/reportes/',
             label: 'Consultas y Reportes',
             icon: 'reports',
-            badge: 'Excel',
             active: (path.startsWith('/admin-panel/reportes'))
           },
           {
@@ -303,21 +269,18 @@
             href: '/admin-panel/importar-excel/',
             label: 'Importar Excel',
             icon: 'import',
-            badge: 'R10',
             active: (path.startsWith('/admin-panel/importar-excel'))
           },
           {
             href: '/admin-panel/cuestionarios/crear/',
             label: 'Configurar Cuestionarios',
             icon: 'quiz',
-            badge: 'R01-R04',
             active: (path.startsWith('/admin-panel/cuestionarios/crear'))
           },
           {
             href: '/admin-panel/reportes/',
             label: 'Consultas y Reportes',
             icon: 'reports',
-            badge: 'Excel',
             active: (path.startsWith('/admin-panel/reportes'))
           },
           {
@@ -332,18 +295,13 @@
       // Renderizar elementos HTML
       navContainer.innerHTML = links.map(link => {
         const activeClass = link.active 
-          ? 'bg-uniblue text-white font-semibold shadow-xs border border-sky-400/30' 
+          ? 'bg-uniblue text-white font-semibold shadow-xs border border-sky-400/40' 
           : 'text-slate-300 hover:bg-slate-800 hover:text-white transition';
 
-        const badgeHtml = link.badge 
-          ? `<span class="ml-auto text-[9px] bg-white/10 text-slate-200 font-mono px-1.5 py-0.5 rounded font-bold">${link.badge}</span>` 
-          : '';
-
         return `
-          <a href="${link.href}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs ${activeClass}">
+          <a href="${link.href}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm ${activeClass}">
             ${getSidebarSvg(link.icon)}
             <span class="truncate">${link.label}</span>
-            ${badgeHtml}
           </a>
         `;
       }).join('');
@@ -375,14 +333,14 @@
         // Estilos para badge de rol en topbar
         if (navRoleBadge) {
           if (rolNombre === 'Administrador' || user.is_superuser) {
-            navRoleBadge.className = 'text-[10px] inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200';
-            navRoleBadge.firstElementChild.className = 'w-1.5 h-1.5 rounded-full bg-amber-500';
+            navRoleBadge.className = 'text-xs inline-flex items-center gap-1.5 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300';
+            navRoleBadge.firstElementChild.className = 'w-2 h-2 rounded-full bg-amber-600';
           } else if (rolNombre.includes('Docente')) {
-            navRoleBadge.className = 'text-[10px] inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200';
-            navRoleBadge.firstElementChild.className = 'w-1.5 h-1.5 rounded-full bg-sky-500';
+            navRoleBadge.className = 'text-xs inline-flex items-center gap-1.5 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-sky-100 text-sky-900 border border-sky-300';
+            navRoleBadge.firstElementChild.className = 'w-2 h-2 rounded-full bg-sky-600';
           } else {
-            navRoleBadge.className = 'text-[10px] inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200';
-            navRoleBadge.firstElementChild.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+            navRoleBadge.className = 'text-xs inline-flex items-center gap-1.5 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-300';
+            navRoleBadge.firstElementChild.className = 'w-2 h-2 rounded-full bg-emerald-600';
           }
         }
 
@@ -395,14 +353,14 @@
         if (sideRole) sideRole.innerText = rolNombre;
         if (sideRoleBadge) {
           if (rolNombre === 'Administrador' || user.is_superuser) {
-            sideRoleBadge.className = 'mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40';
-            sideRoleBadge.firstElementChild.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+            sideRoleBadge.className = 'mt-1 inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-md font-bold bg-amber-500/20 text-amber-200 border border-amber-500/40';
+            sideRoleBadge.firstElementChild.className = 'w-2 h-2 rounded-full bg-amber-400';
           } else if (rolNombre.includes('Docente')) {
-            sideRoleBadge.className = 'mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/40';
-            sideRoleBadge.firstElementChild.className = 'w-1.5 h-1.5 rounded-full bg-sky-400';
+            sideRoleBadge.className = 'mt-1 inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-md font-bold bg-sky-500/20 text-sky-200 border border-sky-500/40';
+            sideRoleBadge.firstElementChild.className = 'w-2 h-2 rounded-full bg-sky-400';
           } else {
-            sideRoleBadge.className = 'mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
-            sideRoleBadge.firstElementChild.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+            sideRoleBadge.className = 'mt-1 inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-md font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-500/40';
+            sideRoleBadge.firstElementChild.className = 'w-2 h-2 rounded-full bg-emerald-400';
           }
         }
 
@@ -478,6 +436,51 @@
 
           confirmBtn.onclick = () => cleanup(true);
           cancelBtn.onclick = () => cleanup(false);
+        });
+      },
+
+      prompt({ title = 'Ingrese dato', message = '', placeholder = '', confirmText = 'Aceptar', cancelText = 'Cancelar', inputType = 'text' } = {}) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById('globalDialogModal');
+          const box = document.getElementById('globalDialogBox');
+          const titleEl = document.getElementById('globalDialogTitle');
+          const msgEl = document.getElementById('globalDialogMessage');
+          const iconEl = document.getElementById('globalDialogIcon');
+          const cancelBtn = document.getElementById('globalDialogCancelBtn');
+          const confirmBtn = document.getElementById('globalDialogConfirmBtn');
+
+          titleEl.innerText = title;
+          msgEl.innerHTML = `<div>${message}</div><div class="mt-3"><input id="globalDialogInput" type="${inputType}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold focus:border-uniblue outline-none"></div>`;
+          confirmBtn.innerText = confirmText;
+          cancelBtn.innerText = cancelText;
+          cancelBtn.classList.remove('hidden');
+
+          iconEl.className = 'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-sky-100 text-uniblue';
+          iconEl.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>';
+          confirmBtn.className = 'px-5 py-2 rounded-xl text-white font-bold text-xs transition shadow-sm bg-uniblue hover:bg-uniblue-dark';
+
+          modal.classList.remove('hidden');
+          requestAnimationFrame(() => {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+            const inp = document.getElementById('globalDialogInput');
+            if (inp) inp.focus();
+          });
+
+          const cleanup = (val) => {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+              modal.classList.add('hidden');
+              resolve(val);
+            }, 120);
+          };
+
+          confirmBtn.onclick = () => {
+            const inp = document.getElementById('globalDialogInput');
+            cleanup(inp ? inp.value.trim() : '');
+          };
+          cancelBtn.onclick = () => cleanup(null);
         });
       },
 

@@ -25,7 +25,7 @@ class PreguntaDetalleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pregunta
         fields = [
-            'id', 'categoria', 'categoria_nombre', 'tipo',
+            'id', 'categoria', 'categoria_nombre', 'tipo', 'nivel_dificultad',
             'texto_base', 'enunciado', 'retroalimentacion',
             'puntaje', 'activo', 'opciones', 'created_at', 'updated_at'
         ]

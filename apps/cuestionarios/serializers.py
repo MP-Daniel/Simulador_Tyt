@@ -26,12 +26,12 @@ class CuestionarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuestionario
         fields = [
-            'id', 'nombre', 'descripcion', 'fecha_apertura', 'fecha_cierre',
-            'tiempo_limite_minutos', 'intentos_permitidos', 'calificacion_maxima',
-            'calificacion_aprobacion', 'mezclar_preguntas', 'mezclar_respuestas',
-            'permitir_revision', 'estado', 'activo', 'total_preguntas',
-            'puntaje_total', 'cuestionario_preguntas', 'preguntas_ids',
-            'created_at', 'updated_at'
+            'id', 'nombre', 'descripcion', 'asignatura', 'clave_acceso',
+            'fecha_apertura', 'fecha_cierre', 'tiempo_limite_minutos',
+            'intentos_permitidos', 'calificacion_maxima', 'calificacion_aprobacion',
+            'mezclar_preguntas', 'mezclar_respuestas', 'permitir_revision',
+            'estado', 'activo', 'total_preguntas', 'puntaje_total',
+            'cuestionario_preguntas', 'preguntas_ids', 'created_at', 'updated_at'
         ]
 
     def validate(self, attrs):
@@ -39,10 +39,12 @@ class CuestionarioSerializer(serializers.ModelSerializer):
         cierre = attrs.get('fecha_cierre', getattr(self.instance, 'fecha_cierre', None))
         maxima = attrs.get('calificacion_maxima', getattr(self.instance, 'calificacion_maxima', Decimal('5.00')))
         aprobacion = attrs.get('calificacion_aprobacion', getattr(self.instance, 'calificacion_aprobacion', Decimal('3.00')))
+        tiempo_limite = attrs.get('tiempo_limite_minutos', getattr(self.instance, 'tiempo_limite_minutos', 60))
+        intentos = attrs.get('intentos_permitidos', getattr(self.instance, 'intentos_permitidos', 2))
 
         if apertura and cierre and cierre <= apertura:
             raise serializers.ValidationError({
-                'fecha_cierre': 'Regla R01 violada: La fecha de cierre debe ser posterior a la fecha de apertura.'
+                'fecha_cierre': 'Regla R01 violada: La fecha de cierre debe ser estrictamente posterior a la fecha de apertura.'
             })
 
         if maxima is not None and maxima <= Decimal('0.00'):
@@ -55,6 +57,16 @@ class CuestionarioSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'calificacion_aprobacion': 'Regla R03 violada: La nota de aprobación debe estar entre 0.00 y la calificación máxima.'
                 })
+
+        if tiempo_limite is not None and tiempo_limite <= 0:
+            raise serializers.ValidationError({
+                'tiempo_limite_minutos': 'Regla R04 violada: El tiempo límite debe ser estrictamente mayor que cero.'
+            })
+
+        if intentos is not None and intentos <= 0:
+            raise serializers.ValidationError({
+                'intentos_permitidos': 'Regla R04 violada: Los intentos permitidos deben ser mayores que cero.'
+            })
 
         return attrs
 
@@ -108,6 +120,7 @@ class CuestionarioEstudianteSerializer(serializers.ModelSerializer):
     Expone los cuestionarios disponibles y audita intentos consumidos.
     """
     total_preguntas = serializers.IntegerField(source='cuestionario_preguntas.count', read_only=True)
+    requiere_clave = serializers.BooleanField(source='tiene_clave', read_only=True)
     disponible_ahora = serializers.SerializerMethodField()
     motivo_no_disponible = serializers.SerializerMethodField()
     intentos_realizados = serializers.SerializerMethodField()
@@ -116,10 +129,11 @@ class CuestionarioEstudianteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuestionario
         fields = [
-            'id', 'nombre', 'descripcion', 'fecha_apertura', 'fecha_cierre',
-            'tiempo_limite_minutos', 'intentos_permitidos', 'calificacion_maxima',
-            'calificacion_aprobacion', 'total_preguntas', 'disponible_ahora',
-            'motivo_no_disponible', 'intentos_realizados', 'puede_iniciar'
+            'id', 'nombre', 'descripcion', 'asignatura', 'requiere_clave',
+            'fecha_apertura', 'fecha_cierre', 'tiempo_limite_minutos',
+            'intentos_permitidos', 'calificacion_maxima', 'calificacion_aprobacion',
+            'total_preguntas', 'disponible_ahora', 'motivo_no_disponible',
+            'intentos_realizados', 'puede_iniciar'
         ]
 
     def get_disponible_ahora(self, obj):

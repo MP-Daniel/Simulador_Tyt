@@ -35,6 +35,7 @@ class IntentoListSerializer(serializers.ModelSerializer):
     cuestionario_calificacion_maxima = serializers.DecimalField(source='cuestionario.calificacion_maxima', max_digits=5, decimal_places=2, read_only=True)
     cuestionario_permitir_revision = serializers.BooleanField(source='cuestionario.permitir_revision', read_only=True)
     estudiante_nombre = serializers.CharField(source='estudiante.get_full_name', read_only=True)
+    estudiante_username = serializers.CharField(source='estudiante.username', read_only=True)
     estudiante_codigo = serializers.CharField(source='estudiante.codigo_estudiantil', read_only=True)
 
     class Meta:
@@ -42,7 +43,7 @@ class IntentoListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'cuestionario', 'cuestionario_nombre',
             'cuestionario_calificacion_maxima', 'cuestionario_permitir_revision',
-            'estudiante', 'estudiante_nombre', 'estudiante_codigo',
+            'estudiante', 'estudiante_nombre', 'estudiante_username', 'estudiante_codigo',
             'numero_intento', 'fecha_inicio', 'fecha_fin',
             'duracion_segundos', 'puntaje_obtenido', 'puntaje_total_posible',
             'calificacion', 'estado_intento', 'resultado',

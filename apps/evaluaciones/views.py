@@ -50,12 +50,15 @@ class IniciarIntentoView(APIView):
 
         cuestionario = get_object_or_404(Cuestionario, id=cuestionario_id)
 
-        # 1. Validación en el servidor de disponibilidad e intentos (R08, R04)
-        puede_iniciar, motivo = cuestionario.puede_iniciar_estudiante(user)
+        # 1. Validación en el servidor de disponibilidad, clave de acceso e intentos (R08, R04)
+        clave_suministrada = request.data.get('clave_acceso', None)
+        puede_iniciar, motivo = cuestionario.puede_iniciar_estudiante(user, clave=clave_suministrada)
         if not puede_iniciar:
+            codigo = 'PASSWORD_REQUIRED' if ('contraseña' in motivo.lower() or 'clave' in motivo.lower()) else 'DISPONIBILIDAD_BLOQUEADA'
             return Response({
                 'detail': f'No es posible iniciar el cuestionario: {motivo}',
-                'codigo': 'DISPONIBILIDAD_BLOQUEADA'
+                'codigo': codigo,
+                'requiere_clave': cuestionario.tiene_clave
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # 2. Verificar si ya hay un intento en progreso para retomarlo

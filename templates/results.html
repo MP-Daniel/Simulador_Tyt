@@ -40,32 +40,32 @@
 
       <!-- Bloque de Calificación en Decimal -->
       <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 max-w-md mx-auto mb-6">
-        <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Calificación Final Obtenida</div>
+        <div class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Calificación Final Obtenida</div>
         <div class="text-5xl font-black text-uniblue tracking-tight" id="scoreDisplay">
           0.00 <span class="text-2xl text-slate-400 font-normal">/ 5.00</span>
         </div>
-        <p class="text-[11px] text-slate-500 mt-2">
-          Calculada automáticamente en Django con precisión <span class="font-bold text-slate-700 font-mono">DECIMAL(5,2)</span>.
+        <p class="text-xs text-slate-600 mt-2">
+          Calculada automáticamente en Django con precisión <span class="font-bold text-slate-800 font-mono">DECIMAL(5,2)</span>.
         </p>
       </div>
 
       <!-- Métricas Resumen -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-          <div class="text-[9px] uppercase text-slate-400 font-bold">Puntaje Total</div>
-          <div class="text-sm md:text-base font-bold text-slate-800 font-mono" id="rawScore">0.00 / 0.00 pts</div>
+          <div class="text-xs uppercase text-slate-500 font-bold tracking-wider">Puntaje Total</div>
+          <div class="text-sm md:text-base font-bold text-slate-900 font-mono mt-0.5" id="rawScore">0.00 / 0.00 pts</div>
         </div>
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-          <div class="text-[9px] uppercase text-slate-400 font-bold">Porcentaje</div>
-          <div class="text-sm md:text-base font-bold text-unigreen-dark font-mono" id="percentScore">0.0%</div>
+          <div class="text-xs uppercase text-slate-500 font-bold tracking-wider">Porcentaje</div>
+          <div class="text-sm md:text-base font-bold text-emerald-700 font-mono mt-0.5" id="percentScore">0.0%</div>
         </div>
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-          <div class="text-[9px] uppercase text-slate-400 font-bold">Aciertos</div>
-          <div class="text-sm md:text-base font-bold text-slate-800 font-mono" id="hitsCount">0 de 0</div>
+          <div class="text-xs uppercase text-slate-500 font-bold tracking-wider">Aciertos</div>
+          <div class="text-sm md:text-base font-bold text-slate-900 font-mono mt-0.5" id="hitsCount">0 de 0</div>
         </div>
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-          <div class="text-[9px] uppercase text-slate-400 font-bold">Tiempo Empleado</div>
-          <div class="text-sm md:text-base font-bold text-slate-800 font-mono" id="timeSpent">0m 0s</div>
+          <div class="text-xs uppercase text-slate-500 font-bold tracking-wider">Tiempo Empleado</div>
+          <div class="text-sm md:text-base font-bold text-slate-900 font-mono mt-0.5" id="timeSpent">0m 0s</div>
         </div>
       </div>
     </div>
@@ -181,8 +181,9 @@
 
     if (!data.permitir_revision) {
       listContainer.innerHTML = `
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 text-center">
-          ℹ️ El docente ha configurado este cuestionario para no revelar respuestas correctas ni justificaciones detalladas.
+        <div class="bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs font-medium text-amber-900 text-center flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>El docente ha configurado este cuestionario para no revelar respuestas correctas ni justificaciones detalladas.</span>
         </div>
       `;
       return;
@@ -193,14 +194,14 @@
       const isOmitted = (resp.opcion_seleccionada_letra === null);
 
       let cardBorder = 'border-l-4 border-l-emerald-500';
-      let statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Correcta (+' + parseFloat(resp.puntaje_obtenido).toFixed(2) + ' pts)</span>';
+      let statusBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold px-3 py-1 rounded-full">Correcta (+' + parseFloat(resp.puntaje_obtenido).toFixed(2) + ' pts)</span>';
 
       if (isOmitted) {
         cardBorder = 'border-l-4 border-l-amber-400';
-        statusBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Omitida / En blanco (0.00 pts - Regla R09)</span>';
+        statusBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-full">Omitida / En blanco (0.00 pts)</span>';
       } else if (!isCorrect) {
-        cardBorder = 'border-l-4 border-l-red-500';
-        statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Incorrecta (0.00 pts)</span>';
+        cardBorder = 'border-l-4 border-l-rose-500';
+        statusBadge = '<span class="bg-rose-100 text-rose-900 border border-rose-300 text-xs font-bold px-3 py-1 rounded-full">Incorrecta (0.00 pts)</span>';
       }
 
       const card = document.createElement('div');
@@ -208,23 +209,23 @@
 
       let optionsHtml = '';
       (resp.todas_las_opciones || []).forEach(opt => {
-        let optStyle = 'border-slate-100 bg-slate-50 text-slate-700';
+        let optStyle = 'border-slate-200 bg-slate-50 text-slate-800';
         let mark = '';
 
         if (opt.es_correcta) {
-          optStyle = 'border-emerald-300 bg-emerald-50 text-emerald-900 font-semibold';
-          mark = '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded">Respuesta Correcta</span>';
+          optStyle = 'border-emerald-300 bg-emerald-50 text-emerald-950 font-semibold';
+          mark = '<span class="text-xs bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded">Respuesta Correcta</span>';
         }
 
         if (opt.letra === resp.opcion_seleccionada_letra && !isCorrect) {
-          optStyle = 'border-red-300 bg-red-50 text-red-900';
-          mark = '<span class="text-[10px] bg-red-500 text-white font-bold px-2 py-0.5 rounded">Tu Elección</span>';
+          optStyle = 'border-rose-300 bg-rose-50 text-rose-950';
+          mark = '<span class="text-xs bg-rose-600 text-white font-bold px-2.5 py-0.5 rounded">Tu Elección</span>';
         } else if (opt.letra === resp.opcion_seleccionada_letra && isCorrect) {
-          mark = '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded">Tu Elección</span>';
+          mark = '<span class="text-xs bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded">Tu Elección</span>';
         }
 
         optionsHtml += `
-          <div class="flex justify-between items-center p-2.5 rounded-xl border text-xs ${optStyle}">
+          <div class="flex justify-between items-center p-3 rounded-xl border text-xs sm:text-sm ${optStyle}">
             <span><strong>${opt.letra})</strong> ${opt.texto}</span>
             ${mark}
           </div>
