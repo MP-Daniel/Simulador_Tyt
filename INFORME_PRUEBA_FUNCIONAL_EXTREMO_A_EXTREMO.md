@@ -98,10 +98,45 @@ Integrar y comprobar el funcionamiento comprobable de todo el simulador desde la
 
 ---
 
-## 5. 📂 Entregables Disponibles en el Repositorio
+## 5. 📸 Evidencias en Capturas de Pantalla (Punto 5 del Taller)
 
-1. **Documento PDF Oficial:** [`INFORME_PRUEBA_FUNCIONAL_EXTREMO_A_EXTREMO.pdf`](./INFORME_PRUEBA_FUNCIONAL_EXTREMO_A_EXTREMO.pdf) (78 KB, 4 páginas, membrete oficial UniPutumayo, tablas de validación y KPIs).
-2. **Suite de Verificación del Taller:** [`test_taller_extremo_a_extremo.py`](./test_taller_extremo_a_extremo.py) (Comprueba de forma desatendida las 4 fases, 26 pasos y 7 pruebas mínimas).
-3. **Suite de Seguridad y JWT:** [`test_jwt_security.py`](./test_jwt_security.py) (14 pruebas de seguridad, roles, Sandbox y blindaje de endpoints).
-4. **Suite de Reportes y Excel:** [`test_reportes_excel.py`](./test_reportes_excel.py) (14 pruebas de consultas jerárquicas y exportación `.xlsx`).
-5. **Servidor y Código Fuente:** Aplicaciones desacopladas `authentication`, `banco_preguntas`, `cuestionarios`, `evaluaciones` y `reportes`.
+Conforme a las exigencias oficiales de la **Sección 5 de la Guía de Actividad** (*Evidencias y producto de entrega*), se documenta visualmente cada hito funcional indispensable:
+
+### 1. Configuración Docente (Creación de Cuestionario, Vigencia y Contraseña)
+Configuración de título, asignatura, descripción, ventana temporal (apertura y cierre), duración de 30 minutos, 1 intento máximo y clave de acceso `SaberTyT2026`:
+![Evidencia 1 - Configuración Docente](docs/evidencias/evidencia_01_configuracion_docente.png)
+
+### 2. Banco de Preguntas y Descarga de Plantilla Oficial Excel
+Repositorio central de reactivos clasificados por competencias genéricas Saber TyT, nivel de dificultad (Baja/Media/Alta) y botón de descarga de la plantilla oficial multi-hoja `.xlsx`:
+![Evidencia 2 - Banco de Preguntas](docs/evidencias/evidencia_02_banco_preguntas.png)
+
+### 3. Módulo de Importación Masiva Excel y Auditoría Preventiva
+Zona de carga drag-and-drop con validación previa de reglas de negocio (R02, R05, R06, R10), diagnóstico de errores fila por fila y auditoría antes de persistir:
+![Evidencia 3 - Importador Excel](docs/evidencias/evidencia_03_importacion_excel.png)
+
+### 4. Portal del Estudiante y Evaluación Activa (Disponibilidad y Clave)
+Panel del estudiante con visibilidad exclusiva de cuestionarios habilitados en estado `disponible`, indicador de contraseña requerida y vigencia activa:
+![Evidencia 4 - Evaluación Activa en Panel Estudiante](docs/evidencias/evidencia_04_evaluacion_activa_estudiante.png)
+
+### 5. Sala de Examen en Vivo (Temporizador Regresivo y Opciones A-D)
+Interfaz del estudiante con temporizador dinámico sincronizado, panel lateral de seguimiento de reactivos y opciones de selección múltiple protegidas:
+![Evidencia 5 - Sala de Examen](docs/evidencias/evidencia_05_sala_examen.png)
+
+### 6. Resultados y Calificación Inmediata con Retroalimentación Pedagógica
+Cálculo decimal exacto de la nota (3.75 / 5.00), estado APROBADO, desglose de aciertos (3) y omitidas (1), con justificaciones formativas para cada reactivo:
+![Evidencia 6 - Resultados del Estudiante](docs/evidencias/evidencia_06_resultado_estudiante.png)
+
+### 7. Panel Docente de Supervisión y Reportes Estadísticos Saber TyT
+Auditoría y analítica académica: tasa de aprobación (100%), promedio de notas, distribución de intentos, preguntas críticas y análisis de desempeño por ejes temáticos:
+![Evidencia 7 - Reportes Estadísticos Docente](docs/evidencias/evidencia_07_reporte_estadistico_docente.png)
+
+---
+
+## 6. 📂 Entregables Disponibles en el Repositorio
+
+1. **Documento PDF Oficial:** [`INFORME_PRUEBA_FUNCIONAL_EXTREMO_A_EXTREMO.pdf`](./INFORME_PRUEBA_FUNCIONAL_EXTREMO_A_EXTREMO.pdf) (Documento con membrete oficial UniPutumayo, tablas de validación, capturas visuales de evidencias y KPIs).
+2. **Directorio de Evidencias:** Carpeta [`docs/evidencias/`](./docs/evidencias/) con las 7 capturas de pantalla en alta resolución.
+3. **Suite de Verificación del Taller:** [`test_taller_extremo_a_extremo.py`](./test_taller_extremo_a_extremo.py) (Comprueba de forma desatendida las 4 fases, 26 pasos y 7 pruebas mínimas).
+4. **Suite de Seguridad y JWT:** [`test_jwt_security.py`](./test_jwt_security.py) (14 pruebas de seguridad, roles, Sandbox y blindaje de endpoints).
+5. **Suite de Reportes y Excel:** [`test_reportes_excel.py`](./test_reportes_excel.py) (14 pruebas de consultas jerárquicas y exportación `.xlsx`).
+6. **Servidor y Código Fuente:** Aplicaciones desacopladas `authentication`, `banco_preguntas`, `cuestionarios`, `evaluaciones` y `reportes`.

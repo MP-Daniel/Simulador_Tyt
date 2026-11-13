@@ -471,9 +471,59 @@ def build_pdf():
     story.append(Spacer(1, 10))
 
     # =========================================================================
-    # 5. GUÍA RÁPIDA PARA LA DEMOSTRACIÓN DEL SÁBADO
+    # 5. EVIDENCIAS EN CAPTURAS DE PANTALLA (PUNTO 5 DEL TALLER)
     # =========================================================================
-    story.append(Paragraph("5. Libreto y Cuentas para la Demostración del Sábado 14", style_h1))
+    story.append(PageBreak())
+    story.append(Paragraph("5. Evidencias en Capturas de Pantalla (Punto 5 del Taller)", style_h1))
+    story.append(Paragraph(
+        "Conforme a las exigencias oficiales de la <b>Sección 5 de la Guía de Actividad</b> (<i>Evidencias y producto de entrega</i>), "
+        "se registran a continuación las capturas de pantalla de alta resolución que acreditan visualmente la ejecución de cada hito funcional obligatorio:",
+        style_body
+    ))
+    story.append(Spacer(1, 8))
+
+    evidencias = [
+        ("Evidencia 1: Configuración Docente de la Evaluación (Vigencia, Tiempo y Clave)",
+         "evidencia_01_configuracion_docente.png",
+         "Formulario de creación de cuestionario con ventana temporal (apertura y cierre), límite de 30 min, 1 intento máximo y contraseña <code>SaberTyT2026</code>."),
+        ("Evidencia 2: Banco de Reactivos y Descarga de Plantilla Oficial Excel",
+         "evidencia_02_banco_preguntas.png",
+         "Repositorio central clasificado por competencias genéricas Saber TyT, niveles de dificultad y botón de descarga de la plantilla oficial."),
+        ("Evidencia 3: Módulo de Importación Masiva Excel y Auditoría Preventiva",
+         "evidencia_03_importacion_excel.png",
+         "Zona de carga drag-and-drop y panel de auditoría diagnóstica con validación de reglas de negocio (R02, R05, R06, R10) fila por fila."),
+        ("Evidencia 4: Panel del Estudiante con Evaluación Habilitada (Regla R08)",
+         "evidencia_04_evaluacion_activa_estudiante.png",
+         "Listado de evaluaciones disponibles en tiempo real, indicador de contraseña requerida y control de acceso por fechas de vigencia."),
+        ("Evidencia 5: Sala de Examen en Vivo con Temporizador Regresivo y Opciones A-D",
+         "evidencia_05_sala_examen.png",
+         "Interfaz de evaluación del estudiante con temporizador dinámico sincronizado, panel lateral de reactivos y opciones protegidas sin fuga de respuestas."),
+        ("Evidencia 6: Calificación Inmediata y Retroalimentación Pedagógica",
+         "evidencia_06_resultado_estudiante.png",
+         "Cálculo matemático de nota (<b>3.75 / 5.00</b>), estado APROBADO, desglose de 3 aciertos y 1 omitida (R09) con justificaciones formativas."),
+        ("Evidencia 7: Panel Docente de Supervisión y Reportes Estadísticos Saber TyT",
+         "evidencia_07_reporte_estadistico_docente.png",
+         "Consolidado general de evaluaciones, indicadores de aprobación (100%), análisis de dificultad por reactivo y desempeño por ejes temáticos.")
+    ]
+
+    evidencias_dir = os.path.abspath("docs/evidencias")
+    for titulo, filename, desc in evidencias:
+        img_path = os.path.join(evidencias_dir, filename)
+        if os.path.exists(img_path):
+            img = Image(img_path, width=6.5 * inch, height=4.0625 * inch)
+            story.append(KeepTogether([
+                Paragraph(f"<b>{titulo}</b>", style_h2),
+                Paragraph(desc, style_body),
+                Spacer(1, 4),
+                img,
+                Spacer(1, 14)
+            ]))
+
+    # =========================================================================
+    # 6. GUÍA RÁPIDA PARA LA DEMOSTRACIÓN DEL SÁBADO
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(Paragraph("6. Libreto y Cuentas para la Demostración del Sábado 14", style_h1))
     
     cuentas_data = [
         [
@@ -521,9 +571,9 @@ def build_pdf():
     story.append(Spacer(1, 10))
 
     # =========================================================================
-    # 6. ENLACE AL REPOSITORIO Y CONCLUSIONES TÉCNICAS
+    # 7. ENLACE AL REPOSITORIO Y CONCLUSIONES TÉCNICAS
     # =========================================================================
-    story.append(Paragraph("6. Enlace al Repositorio y Conclusiones Técnicas", style_h1))
+    story.append(Paragraph("7. Enlace al Repositorio y Conclusiones Técnicas", style_h1))
     
     conclusiones = (
         "<b>Enlace Oficial al Repositorio de Código Fuente:</b><br/>"
